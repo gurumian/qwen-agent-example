@@ -390,22 +390,90 @@ The system supports various built-in tools:
 
 ```
 qwen-agent-example/
-├── src/
-│   ├── __init__.py
-│   ├── api.py              # FastAPI application
-│   ├── agent_manager.py    # Agent management
-│   ├── config.py           # Configuration management
-│   ├── models.py           # Pydantic models
-│   ├── task_types.py       # Task segmentation and configuration
-│   ├── multimodal.py       # Multi-modal processing and support
-│   ├── webui.py            # Gradio web interface
-│   └── cli.py              # Command line interface
-├── Qwen-Agent/             # Reference implementation
-├── main.py                 # Application entry point
-├── pyproject.toml          # Project configuration and dependencies
-├── env.example            # Environment configuration example
+├── src/                   # Source code
+│   ├── __init__.py        # Package initialization
+│   ├── api.py             # FastAPI application and endpoints
+│   ├── agent_manager.py   # Qwen-Agent instance management
+│   ├── config.py          # Configuration management
+│   ├── models.py          # Pydantic models
+│   ├── task_types.py      # Task segmentation and configuration
+│   ├── multimodal.py      # Multi-modal processing and support
+│   ├── webui.py           # Gradio web interface
+│   └── cli.py             # Command line interface
+├── tests/                 # Test suite and results
+│   ├── README.md          # Test documentation
+│   ├── run_all_tests.py   # Comprehensive test runner
+│   ├── view_results.py    # Test results viewer
+│   ├── scripts/           # Individual test scripts
+│   │   ├── test_api.py    # Core API functionality tests
+│   │   ├── test_multimodal.py # Multi-modal processing tests
+│   │   ├── test_webui.py  # Web interface tests
+│   │   └── test_tasks.py  # Task management tests
+│   ├── results/           # Test results and reports
+│   │   └── test_results_*.json # Timestamped test result files
+│   ├── unit/              # Unit tests (future use)
+│   ├── integration/       # Integration tests (future use)
+│   └── e2e/               # End-to-end tests (future use)
+├── Qwen-Agent/            # Reference implementation
+├── main.py                # Application entry point
+├── run_tests.py           # Simple test runner
+├── pyproject.toml         # Project configuration and dependencies
+├── env.example            # Environment variables template
+├── scripts/               # Development and utility scripts
 └── README.md              # This file
 ```
+
+## Testing
+
+The project includes a comprehensive test suite with automated test runners and result tracking.
+
+### Running Tests
+
+#### Run All Tests
+```bash
+# From project root
+python run_tests.py
+
+# Or directly
+python tests/run_all_tests.py
+```
+
+#### Run Individual Test Suites
+```bash
+# API functionality tests
+uv run python tests/scripts/test_api.py
+
+# Multi-modal processing tests
+uv run python tests/scripts/test_multimodal.py
+
+# Web interface tests
+uv run python tests/scripts/test_webui.py
+
+# Task management tests
+uv run python tests/scripts/test_tasks.py
+```
+
+#### View Test Results
+```bash
+# View latest test results
+python tests/view_results.py
+```
+
+### Test Categories
+
+- **Integration Tests**: API functionality, multi-modal processing
+- **End-to-End Tests**: Web interface and user interactions
+- **Unit Tests**: Task management and configuration
+
+### Test Results
+
+Test results are automatically saved to `tests/results/` with timestamps and include:
+- Pass/fail statistics
+- Execution duration
+- System information
+- Detailed output logs
+
+For more information, see [tests/README.md](tests/README.md).
 
 ## Development
 
