@@ -1,0 +1,78 @@
+{
+  "timestamp": "2025-07-28T17:53:49.019153",
+  "summary": {
+    "total_tests": 5,
+    "passed": 5,
+    "failed": 0,
+    "success_rate": 100.0
+  },
+  "test_suites": [
+    {
+      "name": "API Tests",
+      "category": "integration",
+      "description": "Core API functionality tests",
+      "status": "passed",
+      "duration": 4.416149616241455,
+      "return_code": 0,
+      "passed_count": 6,
+      "failed_count": 0,
+      "output": "\ud83d\ude80 Starting Qwen-Agent Chatbot API Tests\n==================================================\nWaiting for server to be ready...\nTesting health endpoint...\n\u2705 Health check passed\nResponse: {'status': 'healthy', 'version': '0.1.0'}\n\nTesting basic chat...\n\u2705 Basic chat test passed\nResponse: <think>\nOkay, the user said, \"Hello! Please respond with a simple greeting.\" Let me think about how ...\n\nTesting streaming chat...\n\u2705 Streaming chat test passed\nStreaming response:\n\n\nTesting agent management...\n\u2705 List agents test passed\nCurrent agents: ['default', 'test_user', 'agent_3']\n\u2705 Create agent test passed\nCreated agent: {'agent_id': 'agent_4', 'status': 'created', 'message': 'Agent agent_4 created successfully'}\n\u2705 Delete agent test passed\n\n==================================================\n\ud83c\udfc1 Tests completed!\n",
+      "error": null
+    },
+    {
+      "name": "Multi-Modal Tests",
+      "category": "integration",
+      "description": "Multi-modal processing and file handling tests",
+      "status": "passed",
+      "duration": 6.810121536254883,
+      "return_code": 0,
+      "passed_count": 7,
+      "failed_count": 0,
+      "output": "\ud83d\ude80 Starting Multi-Modal Tests\n==================================================\nWaiting for server to be ready...\nTesting multi-modal input processing...\n\u2705 Multi-modal processing test passed\nProcessed content: Check out this image: https://example.com/image.jpg\nMedia items: 1\n\nTesting multi-modal chat...\n\u2705 Multi-modal chat test passed\nResponse: <think>\nOkay, the user wants me to analyze an image from the provided URL. Let me check the tools av...\n\nTesting document text extraction...\n\u2705 Document text extraction test passed\nExtracted text: This is a test document for text extraction.\n\nTesting image analysis...\n\u2705 Image analysis test passed\nImage metadata: {'format': 'PNG', 'mode': 'RGBA', 'size': [1, 1], 'width': 1, 'height': 1, 'path': 'test_image.png'}\n\nTesting file upload...\n\u2705 File upload test passed\nUploaded file info: {'filename': 'test_upload.txt', 'file_path': 'temp_uploads/test_upload.txt', 'content_type': 'text/plain', 'size': 31}\n\nTesting base64 processing...\n\u2705 Base64 processing test passed\nBase64 processing result: {'type': 'text', 'content': 'data:image/png;base64,ZmFrZV9wbmdfZGF0YQ==', 'media': [{'type': 'image', 'source': 'base64', 'path': 'temp_uploads/temp_image_1284.png', 'mime_type': 'image/png'}]}\n\nTesting cleanup...\n\u2705 Cleanup test passed\nCleanup result: {'message': 'Temporary files cleaned up successfully'}\n\n==================================================\n\ud83c\udfc1 Multi-modal tests completed!\n",
+      "error": null
+    },
+    {
+      "name": "Web Interface Tests",
+      "category": "e2e",
+      "description": "Web UI functionality and API integration tests",
+      "status": "passed",
+      "duration": 17.759037494659424,
+      "return_code": 0,
+      "passed_count": 8,
+      "failed_count": 0,
+      "output": "\ud83d\ude80 Starting Web Interface Tests\n==================================================\nWaiting for server to be ready...\nTesting WebUI connection...\n\u2705 API server is running\n\nTesting task loading...\n\u2705 Loaded 10 tasks\n  - General Chat: General conversation and Q&A\n  - Code Execution: Execute and analyze code\n  - Document Analysis: Analyze and process documents\n  - Image Generation: Generate images from text descriptions\n  - Image Analysis: Analyze and describe images\n  - Web Search: Search the web for information\n  - Math Solving: Solve mathematical problems\n  - Text Summarization: Summarize and condense text\n  - Translation: Translate text between languages\n  - Data Analysis: Analyze and visualize data\n\nTesting chat functionality...\n\u2705 Chat functionality working\nResponse: <think>\nOkay, the user greeted me with \"Hello, how are you?\" I should respond politely. Since they d...\n\nTesting multi-modal chat...\n\u2705 Multi-modal chat working\n\nTesting task switching...\n\u2705 Task switching working\nSwitched to: code_execution\n\nTesting file upload...\n\u2705 File upload working\nUploaded: test_upload.txt\n\nTesting analytics endpoints...\n\u2705 Health endpoint working\n\u2705 Agents endpoint working (3 agents)\n\n==================================================\n\ud83c\udfc1 Web Interface Tests Completed: 7/7 passed\n\ud83c\udf89 All tests passed! Web interface is ready.\n",
+      "error": null
+    },
+    {
+      "name": "Task Management Tests",
+      "category": "unit",
+      "description": "Task segmentation and management tests",
+      "status": "passed",
+      "duration": 20.165021657943726,
+      "return_code": 0,
+      "passed_count": 5,
+      "failed_count": 0,
+      "output": "\ud83d\ude80 Starting Task Segmentation Tests\n==================================================\nWaiting for server to be ready...\nTesting task listing...\n\u2705 Task listing test passed\nFound 10 task types:\n  - General Chat (general_chat): General conversation and Q&A\n    Tools: []\n    Tags: ['conversation', 'qa', 'general']\n  - Code Execution (code_execution): Execute and analyze code\n    Tools: ['code_interpreter']\n    Tags: ['code', 'programming', 'execution']\n  - Document Analysis (document_analysis): Analyze and process documents\n    Tools: ['file_reader', 'code_interpreter']\n    Tags: ['document', 'analysis', 'pdf', 'text']\n  - Image Generation (image_generation): Generate images from text descriptions\n    Tools: ['image_gen']\n    Tags: ['image', 'generation', 'art', 'creative']\n  - Image Analysis (image_analysis): Analyze and describe images\n    Tools: ['image_analysis']\n    Tags: ['image', 'analysis', 'vision', 'description']\n  - Web Search (web_search): Search the web for information\n    Tools: ['web_search']\n    Tags: ['web', 'search', 'information', 'current']\n  - Math Solving (math_solving): Solve mathematical problems\n    Tools: ['code_interpreter']\n    Tags: ['math', 'mathematics', 'calculation', 'problem-solving']\n  - Text Summarization (text_summarization): Summarize and condense text\n    Tools: []\n    Tags: ['text', 'summarization', 'condensation', 'analysis']\n  - Translation (translation): Translate text between languages\n    Tools: []\n    Tags: ['translation', 'language', 'multilingual', 'communication']\n  - Data Analysis (data_analysis): Analyze and visualize data\n    Tools: ['code_interpreter']\n    Tags: ['data', 'analysis', 'visualization', 'statistics']\n\nTesting task info retrieval...\n\u2705 Task info test passed\nTask: Code Execution\nDescription: Execute and analyze code\nTemperature: 0.3\nTools: ['code_interpreter']\n\nTesting task-based chat...\n\u2705 Task-based chat test passed\nResponse: <think>\nOkay, I need to write a Python function to calculate the factorial of a number. Let me think about how to approach this.\n\nFirst, what is a factorial? The factorial of a number n is the product...\n\nTesting agent task switching...\nCreated agent: agent_4\n\u2705 Agent task switching test passed\nSwitched to: math_solving\n\nTesting invalid task handling...\n\u2705 Invalid task handling test passed\nError message: Invalid task type: invalid_task_type\n\n==================================================\n\ud83c\udfc1 Task segmentation tests completed!\n",
+      "error": null
+    },
+    {
+      "name": "API Security Tests",
+      "category": "security",
+      "description": "Rate limiting, security headers, and API interface tests",
+      "status": "passed",
+      "duration": 12.66184663772583,
+      "return_code": 0,
+      "passed_count": 6,
+      "failed_count": 0,
+      "output": "\ud83d\udd10 API Security Tests\n==================================================\n\ud83d\ude80 Starting server...\n\n--- Health Endpoint ---\nTesting health endpoint...\n\u2705 Health endpoint works\n\u2705 Rate limit headers present\n\n--- API Info ---\nTesting API info endpoint...\n\u2705 API info endpoint works\n   Features: 6\n   Rate limits: {'requests_per_minute': 60, 'requests_per_hour': 1000}\n\n--- API Status ---\nTesting API status endpoint...\n\u2705 API status endpoint works\n   Status: healthy\n   Model: qwen3:14b\n\n--- Rate Limiting ---\nTesting rate limiting...\n\u2705 Rate limiting test completed (no limit hit)\n\n--- Chat Endpoint ---\nTesting chat endpoint...\n\u2705 Chat endpoint works\n\n\ud83d\udcca Test Results: 5/5 passed\n\ud83c\udf89 All API security tests passed!\n\n\ud83d\uded1 Stopping server...\n",
+      "error": null
+    }
+  ],
+  "system_info": {
+    "platform": "Linux-6.8.0-64-generic-x86_64-with-glibc2.39",
+    "python_version": "3.11.13",
+    "cpu_count": 16,
+    "memory_total": 66517422080,
+    "disk_usage": 63.5
+  }
+}

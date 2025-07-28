@@ -1,0 +1,17 @@
+Sample Document for Testing
+
+This is a sample text document that can be used to test the multi-modal processing capabilities of the Qwen-Agent Chatbot System.
+
+Key Features to Test:
+1. Text extraction from documents
+2. Document analysis and summarization
+3. Multi-modal chat with document context
+4. File upload and processing
+
+The system should be able to:
+- Read and understand this text
+- Answer questions about the content
+- Provide summaries and insights
+- Integrate this information into conversations
+
+This document serves as a baseline for testing the chatbot's document processing capabilities. 

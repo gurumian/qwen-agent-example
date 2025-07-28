@@ -1,0 +1,49 @@
+{
+  "project": {
+    "name": "Qwen-Agent Chatbot System",
+    "version": "0.1.0",
+    "description": "A modern chatbot system built on top of the Qwen-Agent framework",
+    "features": [
+      "Multi-modal chat support",
+      "Task-based conversations",
+      "Streaming responses",
+      "File upload and processing",
+      "Rate limiting",
+      "Security headers"
+    ],
+    "endpoints": {
+      "health": "/health",
+      "chat": "/chat",
+      "chat_stream": "/chat/stream",
+      "api_info": "/api/info",
+      "api_status": "/api/status",
+      "tasks": "/tasks",
+      "multimodal": "/multimodal/*"
+    },
+    "configuration": {
+      "default_model": "qwen3:14b",
+      "model_type": "oai",
+      "server_url": "http://localhost:11434/v1",
+      "rate_limits": {
+        "requests_per_minute": 60,
+        "requests_per_hour": 1000
+      }
+    },
+    "dependencies": {
+      "python": ">=3.10",
+      "qwen-agent": "latest",
+      "fastapi": ">=0.104.0",
+      "uvicorn": ">=0.24.0",
+      "pydantic": ">=2.5.0"
+    }
+  },
+  "test_data": {
+    "sample_text": "This is a sample text for testing multi-modal processing.",
+    "sample_numbers": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "sample_objects": [
+      {"id": 1, "name": "Item 1", "value": 100},
+      {"id": 2, "name": "Item 2", "value": 200},
+      {"id": 3, "name": "Item 3", "value": 300}
+    ]
+  }
+} 

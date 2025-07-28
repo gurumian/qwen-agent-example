@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # Qwen-Agent Chatbot API
+  qwen-agent-chatbot:
+    build: .
+    ports:
+      - "8002:8002"
+    environment:
+      - DEFAULT_MODEL=qwen3:14b
+      - DEFAULT_MODEL_TYPE=oai
+      - MODEL_SERVER_URL=http://ollama:11434/v1
+      - MODEL_SERVER_API_KEY=EMPTY
+      - HOST=0.0.0.0
+      - PORT=8002
+      - DEBUG=false
+      - RATE_LIMIT_PER_MINUTE=60
+      - RATE_LIMIT_PER_HOUR=1000
+      - ALLOWED_ORIGINS=*
+    depends_on:
+      - ollama
+    volumes:
+      - ./workspace:/app/workspace
+      - ./temp_uploads:/app/temp_uploads
+      - ./env.example:/app/.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Ollama Model Server
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Nginx reverse proxy (uncomment if needed)
+  # nginx:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf
+  #     - ./ssl:/etc/nginx/ssl
+  #   depends_on:
+  #     - qwen-agent-chatbot
+  #   restart: unless-stopped
+
+volumes:
+  ollama_data:
+    driver: local
+
+networks:
+  default:
+    name: qwen-agent-network 

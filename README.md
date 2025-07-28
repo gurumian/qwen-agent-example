@@ -33,6 +33,17 @@ ollama pull qwen3:14b
 
 ### 1. Installation
 
+#### Option A: Quick Setup (Recommended)
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd qwen-agent-example
+
+# Run automated setup
+./scripts/deploy.sh setup
+```
+
+#### Option B: Manual Setup
 ```bash
 # Clone the repository
 git clone <your-repo-url>
@@ -41,6 +52,8 @@ cd qwen-agent-example
 # Install dependencies using uv
 uv sync
 ```
+
+> 📖 **For detailed installation instructions, see [INSTALLATION.md](INSTALLATION.md)**
 
 ### 2. Configuration
 
@@ -67,15 +80,27 @@ DEFAULT_MODEL_TYPE=qwen_dashscope
 
 ### 3. Running the Application
 
-#### **API Server (Default)**
+#### **Quick Start**
 ```bash
-# Quick start with development script
-./scripts/dev.sh
+# Start development server
+./scripts/deploy.sh dev
 
-# Or manually
+# Or deploy with Docker
+./scripts/deploy.sh docker
+```
+
+#### **Manual Options**
+```bash
+# API Server (Default)
 uv run python main.py --mode api
 
-# Or using uvicorn directly
+# Web Interface (Gradio)
+uv run python main.py --mode webui
+
+# Command Line Interface
+uv run python main.py --mode cli
+
+# Using uvicorn directly
 uv run uvicorn src.api:app --host 0.0.0.0 --port 8002
 ```
 
@@ -441,12 +466,22 @@ qwen-agent-example/
 │   ├── unit/              # Unit tests (future use)
 │   ├── integration/       # Integration tests (future use)
 │   └── e2e/               # End-to-end tests (future use)
+├── workspace/             # Workspace and sample data
+│   └── samples/           # Sample datasets for testing
+│       ├── images/        # Sample images
+│       ├── documents/     # Sample documents
+│       └── code/          # Sample code files
 ├── Qwen-Agent/            # Reference implementation
 ├── main.py                # Application entry point
 ├── run_tests.py           # Simple test runner
 ├── pyproject.toml         # Project configuration and dependencies
 ├── env.example            # Environment variables template
+├── INSTALLATION.md        # Comprehensive installation guide
+├── Dockerfile             # Docker container configuration
+├── docker-compose.yml     # Docker Compose configuration
 ├── scripts/               # Development and utility scripts
+│   ├── deploy.sh          # Automated deployment script
+│   └── dev.sh             # Development setup script
 └── README.md              # This file
 ```
 
