@@ -1,0 +1,11 @@
+# Task ID: 2
+# Title: Implement Qwen-Agent Framework
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Integrate the Qwen-Agent Python package into the chatbot project.
+# Details:
+Utilize the Qwen-Agent framework to support multiple LLM backends (Ollama, DashScope, local APIs).
+
+# Test Strategy:
+Verify the framework is correctly integrated and supports multiple LLM backends.

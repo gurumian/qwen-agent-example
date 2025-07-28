@@ -1,0 +1,82 @@
+PRD for Qwen-Agent Based Learning Multi-Modal Chatbot
+
+1. Overview
+
+This document outlines the core requirements for a learning-oriented chatbot based on the Qwen-Agent framework. The chatbot will support detailed task segmentation and multi-modal input/output (handling various input and output types such as text, images, etc.). Developers can directly reference the official GitHub repository (attached) through cursor integration for easy navigation.
+
+2. Background and Purpose
+
+- Learning & Research: Provide an environment for experimenting and training on natural language instructions, tool usage, and multi-modal inputs.
+- Task Segmentation: Classify various tasks such as conversation, summarization, Q&A, image generation/analysis into detailed categories and labels.
+- Multi-Modal Support: Enable inputs and outputs beyond text, including image upload, generation, and file reading.
+- Reference Management: Enable easy navigation and reference of the Qwen-Agent official documentation at cursor-level within editors.
+
+3. Key Requirements
+
+3.1 Utilize Qwen-Agent Framework
+
+- Implement chatbot using the Qwen-Agent Python package.
+- Support multiple LLM backends (Ollama, DashScope, local APIs, etc.).
+
+3.2 Detailed Task Segmentation and Configuration
+
+- Standardize Task Types, for example:
+  - General Q&A (input: natural language query, output: concise answer)
+  - Text Summarization (input: text passages, output: summary)
+  - Image Generation/Analysis (input: image prompts or images, output: generated images or analysis text)
+  - Document (PDF, etc.) Reading (input: document files, output: extracted/summarized content)
+  - Code Execution (Code Interpreter) (input: code snippets or commands, output: execution results)
+- Register specific functions/tools per task with labels (e.g., tool_list, function_list arguments).
+- Allow task switching and detailed task descriptions within prompts/input UI to help users clearly identify and select task types.
+
+3.3 Multi-Modal Support
+
+- Image Input: Support upload, URL input, or Base64-encoded images.
+- Image Generation: Add and integrate dedicated image generation tools/APIs (e.g., “my_image_gen”).
+- Document Input: Support reading, summarizing, and analyzing documents such as PDF files.
+- Extensibility: Allow future expansion to support other modalities like audio and video, with a staged roadmap prioritizing text and image modalities first.
+
+3.4 Development Environment Cursor Integration for Documentation Navigation
+
+- Integrate quick navigation to https://github.com/QwenLM/Qwen-Agent/tree/main within the development environment.
+- Provide quick links to key documentation parts like README.md, examples/ folder.
+- Mark internal markdown/code blocks with links to relevant GitHub source locations to aid developer workflow.
+
+3.5 GUI and API
+
+- Build user interface with Gradio WebUI for rapid prototyping; provide CLI/console chatbot options as well.
+- Manage message history and user roles (assistant/user/system).
+- Support management of training and experimental histories, and updates to custom system prompts/instructions.
+- Provide API interface specifications including mention of REST or gRPC protocols, and outline authentication and authorization mechanisms for secure integration.
+
+3.6 Installation and Deployment
+
+- Provide pip-installable package with commands such as:
+  pip install -U "qwen-agent[gui,rag,code_interpreter,mcp]"
+- Specify minimum Python version and key dependencies.
+- Support local LLMs (vLLM, Ollama) and cloud APIs (DashScope).
+- Include sample code, tagging standards, README examples, and sample datasets.
+
+4. Extensibility and Security
+
+- Provide interfaces for adding custom tools by inheriting from BaseTool, allowing students and researchers to define tools easily.
+- Provide security guidelines for code execution and external file access.
+- Specify recommended configurations and best practices for safe testing in development environments.
+- Caution explicitly against using code execution and file access features in production environments without hardened security controls.
+
+5. Reference Paths (for Cursor Integration)
+
+- Official repo/documentation: https://github.com/QwenLM/Qwen-Agent/tree/main
+- Sample code and examples: examples/, README.md, docs/
+- Key modules: qwen_agent/agents.py, qwen_agent/tools/, qwen_agent/gui.py
+- Extending tools: Refer to tool registration patterns in qwen_agent/tools/base.py
+
+6. Success Criteria
+
+- Clear, selectable multi-modal tasks executable on chatbot with high accuracy.
+- Users/students can easily add code, tasks, and prompts, and navigate official docs with cursor integration efficiently.
+- Intuitive workflows for text and image input/output multimodal interactions.
+- Achievement of quantitative goals where possible, such as:
+  - Task accuracy benchmarks (e.g., >85% correct answers in Q&A tasks)
+  - System response latency under target thresholds
+  - Scalability to handle simultaneous multiple users in test scenarios

@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Define Task Segmentation and Configuration
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Standardize task types, register specific functions/tools per task with labels, and allow task switching.
+# Details:
+Implement detailed task segmentation and configuration for tasks such as Q&A, text summarization, image generation/analysis, document reading, and code execution.
+
+# Test Strategy:
+Verify the task segmentation and configuration are correctly implemented and functional.
