@@ -1,0 +1,250 @@
+{
+  "project_info": {
+    "name": "Qwen-Agent Chatbot",
+    "github_repo": "QwenLM/Qwen-Agent",
+    "github_url": "https://github.com/QwenLM/Qwen-Agent",
+    "project_root": "."
+  },
+  "documentation_sections": {
+    "overview": {
+      "title": "Project Overview",
+      "description": "Introduction to the Qwen-Agent Chatbot system",
+      "url": "https://github.com/QwenLM/Qwen-Agent#readme",
+      "section": "overview",
+      "tags": [
+        "introduction",
+        "overview",
+        "getting-started"
+      ]
+    },
+    "installation": {
+      "title": "Installation Guide",
+      "description": "Complete installation and setup instructions",
+      "url": "https://github.com/QwenLM/Qwen-Agent#installation",
+      "section": "installation",
+      "tags": [
+        "setup",
+        "installation",
+        "dependencies"
+      ]
+    },
+    "quick_start": {
+      "title": "Quick Start Guide",
+      "description": "Get up and running quickly with the chatbot",
+      "url": "https://github.com/QwenLM/Qwen-Agent#quick-start",
+      "section": "quick_start",
+      "tags": [
+        "quick-start",
+        "tutorial",
+        "examples"
+      ]
+    },
+    "api_reference": {
+      "title": "API Reference",
+      "description": "Complete API documentation and endpoints",
+      "url": "https://github.com/QwenLM/Qwen-Agent/blob/main/README.md#api-usage",
+      "section": "api_reference",
+      "tags": [
+        "api",
+        "endpoints",
+        "reference"
+      ]
+    },
+    "extensibility": {
+      "title": "Extensibility Guide",
+      "description": "How to create custom tools and extend the system",
+      "url": "docs/EXTENSIBILITY_GUIDE.md",
+      "section": "extensibility",
+      "tags": [
+        "custom-tools",
+        "extensibility",
+        "development"
+      ]
+    },
+    "security": {
+      "title": "Security Features",
+      "description": "Security implementation and best practices",
+      "url": "docs/EXTENSIBILITY_GUIDE.md#security-implementation",
+      "section": "security",
+      "tags": [
+        "security",
+        "sandboxing",
+        "validation"
+      ]
+    },
+    "deployment": {
+      "title": "Deployment Guide",
+      "description": "Production deployment and configuration",
+      "url": "INSTALLATION.md#deployment",
+      "section": "deployment",
+      "tags": [
+        "deployment",
+        "production",
+        "docker"
+      ]
+    },
+    "troubleshooting": {
+      "title": "Troubleshooting",
+      "description": "Common issues and solutions",
+      "url": "docs/EXTENSIBILITY_GUIDE.md#troubleshooting",
+      "section": "troubleshooting",
+      "tags": [
+        "troubleshooting",
+        "debugging",
+        "issues"
+      ]
+    },
+    "contributing": {
+      "title": "Contributing Guide",
+      "description": "How to contribute to the project",
+      "url": "https://github.com/QwenLM/Qwen-Agent/blob/main/CONTRIBUTING.md",
+      "section": "contributing",
+      "tags": [
+        "contributing",
+        "development",
+        "community"
+      ]
+    }
+  },
+  "source_locations": {
+    "main_api": {
+      "file_path": "src/api.py",
+      "description": "Main FastAPI application and endpoints",
+      "github_url": "https://github.com/QwenLM/Qwen-Agent/blob/main/src/api.py",
+      "key_functions": [
+        "chat",
+        "chat_stream",
+        "health",
+        "tasks"
+      ],
+      "related_docs": [
+        "api_reference",
+        "overview"
+      ]
+    },
+    "agent_manager": {
+      "file_path": "src/agent_manager.py",
+      "description": "Qwen-Agent instance management and configuration",
+      "github_url": "https://github.com/QwenLM/Qwen-Agent/blob/main/src/agent_manager.py",
+      "key_functions": [
+        "create_agent",
+        "create_task_agent",
+        "switch_agent_task"
+      ],
+      "related_docs": [
+        "api_reference",
+        "overview"
+      ]
+    },
+    "task_types": {
+      "file_path": "src/task_types.py",
+      "description": "Task segmentation and configuration management",
+      "github_url": "https://github.com/QwenLM/Qwen-Agent/blob/main/src/task_types.py",
+      "key_functions": [
+        "TaskManager",
+        "TaskConfiguration",
+        "create_custom_task"
+      ],
+      "related_docs": [
+        "overview",
+        "extensibility"
+      ]
+    },
+    "multimodal": {
+      "file_path": "src/multimodal.py",
+      "description": "Multi-modal processing and file handling",
+      "github_url": "https://github.com/QwenLM/Qwen-Agent/blob/main/src/multimodal.py",
+      "key_functions": [
+        "process_multimodal_input",
+        "extract_text",
+        "analyze_image"
+      ],
+      "related_docs": [
+        "api_reference",
+        "overview"
+      ]
+    },
+    "webui": {
+      "file_path": "src/webui.py",
+      "description": "Gradio web interface implementation",
+      "github_url": "https://github.com/QwenLM/Qwen-Agent/blob/main/src/webui.py",
+      "key_functions": [
+        "create_webui",
+        "WebUI"
+      ],
+      "related_docs": [
+        "overview",
+        "quick_start"
+      ]
+    },
+    "cli": {
+      "file_path": "src/cli.py",
+      "description": "Command line interface implementation",
+      "github_url": "https://github.com/QwenLM/Qwen-Agent/blob/main/src/cli.py",
+      "key_functions": [
+        "create_cli",
+        "CLI"
+      ],
+      "related_docs": [
+        "overview",
+        "quick_start"
+      ]
+    },
+    "security": {
+      "file_path": "src/security.py",
+      "description": "Security framework and sandboxing",
+      "github_url": "https://github.com/QwenLM/Qwen-Agent/blob/main/src/security.py",
+      "key_functions": [
+        "SecurityManager",
+        "CodeSandbox",
+        "FileSecurityManager"
+      ],
+      "related_docs": [
+        "security",
+        "extensibility"
+      ]
+    },
+    "extensibility": {
+      "file_path": "src/extensibility.py",
+      "description": "Custom tool framework and extensibility",
+      "github_url": "https://github.com/QwenLM/Qwen-Agent/blob/main/src/extensibility.py",
+      "key_functions": [
+        "CustomToolBase",
+        "ToolRegistry",
+        "register_custom_tool"
+      ],
+      "related_docs": [
+        "extensibility",
+        "security"
+      ]
+    },
+    "config_manager": {
+      "file_path": "src/config_manager.py",
+      "description": "Configuration management system",
+      "github_url": "https://github.com/QwenLM/Qwen-Agent/blob/main/src/config_manager.py",
+      "key_functions": [
+        "ConfigurationManager",
+        "get_config",
+        "update_config"
+      ],
+      "related_docs": [
+        "extensibility",
+        "deployment"
+      ]
+    },
+    "models": {
+      "file_path": "src/models.py",
+      "description": "Pydantic models and data structures",
+      "github_url": "https://github.com/QwenLM/Qwen-Agent/blob/main/src/models.py",
+      "key_functions": [
+        "ChatRequest",
+        "ChatResponse",
+        "TaskRequest"
+      ],
+      "related_docs": [
+        "api_reference",
+        "overview"
+      ]
+    }
+  }
+}

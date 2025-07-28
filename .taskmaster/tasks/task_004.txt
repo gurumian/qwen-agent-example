@@ -1,6 +1,6 @@
 # Task ID: 4
 # Title: Implement Multi-Modal Support
-# Status: pending
+# Status: done
 # Dependencies: 3
 # Priority: high
 # Description: Support upload, URL input, or Base64-encoded images for image input, and integrate dedicated image generation tools/APIs.

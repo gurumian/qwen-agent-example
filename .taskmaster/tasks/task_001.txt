@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: Setup Project Repository
-# Status: pending
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Clone the official Qwen-Agent GitHub repository and set up the project structure.

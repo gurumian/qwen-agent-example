@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Implement Qwen-Agent Framework
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: high
 # Description: Integrate the Qwen-Agent Python package into the chatbot project.

@@ -2,6 +2,41 @@
 
 A modern chatbot system built on top of the Qwen-Agent framework, providing a FastAPI-based API with support for multiple LLM backends, tools, and streaming responses.
 
+> 📚 **Quick Navigation**: Use `python -m src.doc_cli` for quick access to documentation and source code!
+
+## 📖 Documentation Navigation
+
+### 🚀 Quick Access
+```bash
+# Open documentation sections
+python -m src.doc_cli doc overview
+python -m src.doc_cli doc api_reference
+python -m src.doc_cli doc extensibility
+
+# Open source files in your editor
+python -m src.doc_cli source main_api
+python -m src.doc_cli source security
+
+# Open files on GitHub
+python -m src.doc_cli github main_api
+python -m src.doc_cli github security
+
+# Search documentation and source code
+python -m src.doc_cli search "custom tools"
+python -m src.doc_cli search "security"
+
+# List all available options
+python -m src.doc_cli list all
+```
+
+### 🔗 Key Documentation Links
+- 📖 **[Project Overview](https://github.com/QwenLM/Qwen-Agent#readme)** - Introduction and features
+- 🛠️ **[API Reference](https://github.com/QwenLM/Qwen-Agent/blob/main/README.md#api-usage)** - Complete API documentation
+- 🔧 **[Extensibility Guide](docs/EXTENSIBILITY_GUIDE.md)** - Custom tools and security features
+- 🚀 **[Quick Start](https://github.com/QwenLM/Qwen-Agent#quick-start)** - Get up and running quickly
+- 🔒 **[Security Features](docs/EXTENSIBILITY_GUIDE.md#security-implementation)** - Security implementation details
+- 📦 **[Installation Guide](INSTALLATION.md)** - Detailed setup instructions
+
 ## Features
 
 - 🤖 **Multi-Model Support**: Compatible with DashScope, OpenAI, and local model servers (vLLM, Ollama)

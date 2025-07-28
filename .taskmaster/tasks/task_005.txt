@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Develop User Interface with Gradio WebUI
-# Status: pending
+# Status: done
 # Dependencies: 4
 # Priority: high
 # Description: Build a user interface with Gradio WebUI for rapid prototyping and provide CLI/console chatbot options.

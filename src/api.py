@@ -1,3 +1,24 @@
+"""
+Qwen-Agent Chatbot API
+
+This module provides the main FastAPI application with endpoints for:
+- Chat functionality (streaming and non-streaming)
+- Multi-modal processing
+- Task management
+- Agent management
+- Health checks and API information
+
+📚 Documentation:
+- API Reference: https://github.com/QwenLM/Qwen-Agent/blob/main/README.md#api-usage
+- Extensibility Guide: docs/EXTENSIBILITY_GUIDE.md
+- Security Features: docs/EXTENSIBILITY_GUIDE.md#security-implementation
+
+🔗 Quick Navigation:
+- python -m src.doc_cli doc api_reference
+- python -m src.doc_cli source main_api
+- python -m src.doc_cli github main_api
+"""
+
 from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse

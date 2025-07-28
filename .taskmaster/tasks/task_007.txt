@@ -1,6 +1,6 @@
 # Task ID: 7
 # Title: Provide Installation and Deployment Instructions
-# Status: pending
+# Status: done
 # Dependencies: 6
 # Priority: medium
 # Description: Specify minimum Python version, key dependencies, and provide pip-installable package with commands.

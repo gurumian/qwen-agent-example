@@ -1,0 +1,58 @@
+{
+  "version": "1.0.0",
+  "name": "Qwen-Agent Chatbot Navigation",
+  "description": "Navigation commands for Qwen-Agent Chatbot development",
+  "commands": {
+    "open_doc_overview": "Open Project Overview",
+    "open_doc_installation": "Open Installation Guide",
+    "open_doc_quick_start": "Open Quick Start Guide",
+    "open_doc_api_reference": "Open API Reference",
+    "open_doc_extensibility": "Open Extensibility Guide",
+    "open_doc_security": "Open Security Features",
+    "open_doc_deployment": "Open Deployment Guide",
+    "open_doc_troubleshooting": "Open Troubleshooting",
+    "open_doc_contributing": "Open Contributing Guide",
+    "open_source_main_api": "Open Main FastAPI application and endpoints",
+    "open_github_main_api": "Open src/api.py on GitHub",
+    "open_source_agent_manager": "Open Qwen-Agent instance management and configuration",
+    "open_github_agent_manager": "Open src/agent_manager.py on GitHub",
+    "open_source_task_types": "Open Task segmentation and configuration management",
+    "open_github_task_types": "Open src/task_types.py on GitHub",
+    "open_source_multimodal": "Open Multi-modal processing and file handling",
+    "open_github_multimodal": "Open src/multimodal.py on GitHub",
+    "open_source_webui": "Open Gradio web interface implementation",
+    "open_github_webui": "Open src/webui.py on GitHub",
+    "open_source_cli": "Open Command line interface implementation",
+    "open_github_cli": "Open src/cli.py on GitHub",
+    "open_source_security": "Open Security framework and sandboxing",
+    "open_github_security": "Open src/security.py on GitHub",
+    "open_source_extensibility": "Open Custom tool framework and extensibility",
+    "open_github_extensibility": "Open src/extensibility.py on GitHub",
+    "open_source_config_manager": "Open Configuration management system",
+    "open_github_config_manager": "Open src/config_manager.py on GitHub",
+    "open_source_models": "Open Pydantic models and data structures",
+    "open_github_models": "Open src/models.py on GitHub"
+  },
+  "keybindings": {
+    "ctrl+shift+d": "open_doc_overview",
+    "ctrl+shift+i": "open_doc_installation",
+    "ctrl+shift+q": "open_doc_quick_start",
+    "ctrl+shift+a": "open_doc_api_reference",
+    "ctrl+shift+e": "open_doc_extensibility",
+    "ctrl+shift+s": "open_doc_security",
+    "ctrl+shift+p": "open_doc_deployment",
+    "ctrl+shift+t": "open_doc_troubleshooting"
+  },
+  "contextMenu": {
+    "sourceFiles": [
+      {
+        "label": "Open in Cursor",
+        "command": "open_source_file"
+      },
+      {
+        "label": "Open on GitHub",
+        "command": "open_github_file"
+      }
+    ]
+  }
+}

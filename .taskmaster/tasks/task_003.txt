@@ -1,6 +1,6 @@
 # Task ID: 3
 # Title: Define Task Segmentation and Configuration
-# Status: pending
+# Status: done
 # Dependencies: 2
 # Priority: high
 # Description: Standardize task types, register specific functions/tools per task with labels, and allow task switching.
