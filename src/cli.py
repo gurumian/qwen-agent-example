@@ -102,7 +102,8 @@ Available commands:
                 "messages": [
                     {"role": "user", "content": message}
                 ],
-                "multimodal": multimodal
+                "multimodal": multimodal,
+                "llm_config": None
             }
             
             response = requests.post(f"{self.api_url}/chat", json=request_data)

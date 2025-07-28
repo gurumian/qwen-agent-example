@@ -34,7 +34,7 @@ class ChatRequest(BaseModel):
     system_message: Optional[str] = None
     tools: Optional[List[str]] = None
     files: Optional[List[str]] = None
-    model_config: Optional[Dict[str, Any]] = None
+    llm_config: Optional[Dict[str, Any]] = None
     multimodal: Optional[bool] = False
 
 

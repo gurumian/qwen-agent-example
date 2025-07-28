@@ -85,7 +85,8 @@ class ChatbotWebUI:
                 "messages": [
                     {"role": "user", "content": message}
                 ],
-                "multimodal": multimodal
+                "multimodal": multimodal,
+                "llm_config": None
             }
             
             # Send request to API

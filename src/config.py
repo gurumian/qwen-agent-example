@@ -16,7 +16,7 @@ class Config:
     
     # Model configuration
     DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "qwen3:14b")
-    DEFAULT_MODEL_TYPE: str = os.getenv("DEFAULT_MODEL_TYPE", "openai")
+    DEFAULT_MODEL_TYPE: str = os.getenv("DEFAULT_MODEL_TYPE", "oai")
     
     # API Keys
     DASHSCOPE_API_KEY: Optional[str] = os.getenv("DASHSCOPE_API_KEY")
@@ -55,7 +55,7 @@ Please be helpful, accurate, and follow the user's instructions carefully."""
         # Add API key if available
         if cls.DEFAULT_MODEL_TYPE == "qwen_dashscope" and cls.DASHSCOPE_API_KEY:
             config['api_key'] = cls.DASHSCOPE_API_KEY
-        elif cls.DEFAULT_MODEL_TYPE == "openai" and cls.OPENAI_API_KEY:
+        elif cls.DEFAULT_MODEL_TYPE in ["openai", "oai"] and cls.OPENAI_API_KEY:
             config['api_key'] = cls.OPENAI_API_KEY
         
         # Add model server configuration if available

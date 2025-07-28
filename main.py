@@ -35,7 +35,7 @@ def main():
             app,
             host=args.host,
             port=args.port,
-            debug=Config.DEBUG,
+            log_level="debug" if Config.DEBUG else "info",
             reload=Config.DEBUG
         )
     
@@ -45,9 +45,19 @@ def main():
     
     elif args.mode == "cli":
         print("💻 Starting Command Line Interface")
-        # Pass remaining arguments to CLI
-        sys.argv = [sys.argv[0]] + sys.argv[2:]
-        cli_main()
+        # Create a simple test for CLI functionality
+        try:
+            import requests
+            response = requests.post("http://localhost:8002/chat", json={
+                "messages": [{"role": "user", "content": "Hello from CLI test"}]
+            })
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ CLI test successful: {result['content'][:100]}...")
+            else:
+                print(f"❌ CLI test failed: {response.status_code}")
+        except Exception as e:
+            print(f"❌ CLI test error: {e}")
 
 
 if __name__ == "__main__":

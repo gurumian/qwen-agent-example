@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import json
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Optional
 
 from .models import (
     ChatRequest, 
@@ -74,7 +74,7 @@ async def chat(request: ChatRequest):
                 system_message=request.system_message,
                 tools=request.tools,
                 files=request.files,
-                model_config=request.model_config
+                model_config=request.llm_config
             )
         
         # Get response
@@ -123,7 +123,7 @@ async def chat_stream(request: ChatRequest):
                 system_message=request.system_message,
                 tools=request.tools,
                 files=request.files,
-                model_config=request.model_config
+                model_config=request.llm_config
             )
         
         def generate():
@@ -156,7 +156,7 @@ async def create_agent(request: ChatRequest):
             system_message=request.system_message,
             tools=request.tools,
             files=request.files,
-            model_config=request.model_config
+            model_config=request.llm_config
         )
         
         return {
@@ -279,7 +279,7 @@ async def chat_with_task(task_type: str, request: ChatRequest):
             temp_agent_id, 
             task_enum, 
             request.files,
-            request.model_config
+            request.llm_config
         )
         
         # Get response
