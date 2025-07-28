@@ -61,6 +61,24 @@ class TestRunner:
                 "file": "test_api_security.py",
                 "description": "Rate limiting, security headers, and API interface tests",
                 "category": "security"
+            },
+            {
+                "name": "Extensibility Framework Tests",
+                "file": "test_extensibility.py",
+                "description": "Custom tool framework, security validation, and tool registration tests",
+                "category": "unit"
+            },
+            {
+                "name": "Documentation Navigation Tests",
+                "file": "test_documentation_navigation.py",
+                "description": "Documentation navigation system and CLI interface tests",
+                "category": "unit"
+            },
+            {
+                "name": "Performance Benchmarking Tests",
+                "file": "test_performance.py",
+                "description": "System performance, response latency, and scalability tests",
+                "category": "performance"
             }
         ]
         
