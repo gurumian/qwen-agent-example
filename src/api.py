@@ -303,9 +303,11 @@ async def chat_with_task(task_type: str, request: ChatRequest):
 
 
 @app.post("/multimodal/process", response_model=Dict[str, Any])
-async def process_multimodal_input(content: Union[str, Dict, List]):
+async def process_multimodal_input(request: Dict[str, Any]):
     """Process multi-modal input and return structured data."""
     try:
+        # Extract content from request body
+        content = request.get("content", request)  # Fallback to entire request if no content field
         result = multimodal_processor.process_input(content)
         return result
     except Exception as e:

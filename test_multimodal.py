@@ -16,7 +16,7 @@ def test_multimodal_processing():
     try:
         # Test text with URL
         test_content = "Check out this image: https://example.com/image.jpg"
-        response = requests.post("http://localhost:8002/multimodal/process", json=test_content)
+        response = requests.post("http://localhost:8002/multimodal/process", json={"content": test_content})
         
         if response.status_code == 200:
             print("✅ Multi-modal processing test passed")
@@ -163,7 +163,7 @@ def test_base64_processing():
         png_data = base64.b64encode(b"fake_png_data").decode()
         base64_content = f"data:image/png;base64,{png_data}"
         
-        response = requests.post("http://localhost:8002/multimodal/process", json=base64_content)
+        response = requests.post("http://localhost:8002/multimodal/process", json={"content": base64_content})
         
         if response.status_code == 200:
             print("✅ Base64 processing test passed")
