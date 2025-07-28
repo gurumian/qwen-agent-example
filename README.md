@@ -68,7 +68,7 @@ Edit `.env` with your configuration:
 ```env
 # For local Ollama (default)
 DEFAULT_MODEL=qwen3:14b
-DEFAULT_MODEL_TYPE=openai
+DEFAULT_MODEL_TYPE=oai
 MODEL_SERVER_URL=http://localhost:11434/v1
 MODEL_SERVER_API_KEY=EMPTY
 
@@ -269,7 +269,7 @@ print(f"Uploaded: {file_info}")
 
 ```env
 DEFAULT_MODEL=qwen3:14b
-DEFAULT_MODEL_TYPE=openai
+DEFAULT_MODEL_TYPE=oai
 MODEL_SERVER_URL=http://localhost:11434/v1
 MODEL_SERVER_API_KEY=EMPTY
 ```
