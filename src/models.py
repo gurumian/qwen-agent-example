@@ -40,4 +40,36 @@ class AssistantResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str = "healthy"
-    version: str = "0.1.0" 
+    version: str = "0.1.0"
+
+
+class TaskInfo(BaseModel):
+    task_type: str
+    name: str
+    description: str
+    tools: List[str]
+    tags: List[str]
+
+
+class TaskDetail(BaseModel):
+    task_type: str
+    name: str
+    description: str
+    system_message: str
+    tools: List[str]
+    tags: List[str]
+    temperature: Optional[float] = None
+    top_p: Optional[float] = None
+    max_tokens: Optional[int] = None
+
+
+class TaskSwitchRequest(BaseModel):
+    task_type: str
+    files: Optional[List[str]] = None
+
+
+class TaskSwitchResponse(BaseModel):
+    agent_id: str
+    task_type: str
+    status: str
+    message: str 

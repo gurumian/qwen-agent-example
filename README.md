@@ -7,6 +7,7 @@ A modern chatbot system built on top of the Qwen-Agent framework, providing a Fa
 - 🤖 **Multi-Model Support**: Compatible with DashScope, OpenAI, and local model servers (vLLM, Ollama)
 - 🛠️ **Tool Integration**: Built-in support for code interpreter, web search, image generation, and more
 - 📡 **Streaming Responses**: Real-time streaming chat responses
+- 🎯 **Task Segmentation**: Pre-configured task types with specialized tools and system messages
 - 🔧 **Extensible Architecture**: Easy to add custom tools and agents
 - 🌐 **RESTful API**: Clean FastAPI-based API with automatic documentation
 - 📁 **File Processing**: Support for document upload and analysis
@@ -136,6 +137,35 @@ response = requests.post("http://localhost:8002/chat", json={
 print(response.json()["content"])
 ```
 
+### Task-Based Chat
+
+```python
+import requests
+
+# Chat with a task-specific agent
+response = requests.post("http://localhost:8002/chat/task/code_execution", json={
+    "messages": [
+        {"role": "user", "content": "Write a Python function to calculate fibonacci numbers"}
+    ]
+})
+
+print(response.json()["content"])
+```
+
+### List Available Tasks
+
+```python
+import requests
+
+# Get all available task types
+response = requests.get("http://localhost:8002/tasks")
+tasks = response.json()
+
+for task in tasks:
+    print(f"{task['name']}: {task['description']}")
+    print(f"Tools: {task['tools']}")
+```
+
 ## Model Configuration
 
 ### Local Ollama (Default)
@@ -164,6 +194,60 @@ MODEL_SERVER_URL=http://localhost:8000/v1
 MODEL_SERVER_API_KEY=EMPTY
 ```
 
+## Available Task Types
+
+The system supports various pre-configured task types:
+
+### **General Chat**
+- **Description**: General conversation and Q&A
+- **Tools**: None (general conversation)
+- **Tags**: conversation, qa, general
+
+### **Code Execution**
+- **Description**: Execute and analyze code
+- **Tools**: code_interpreter
+- **Tags**: code, programming, execution
+
+### **Document Analysis**
+- **Description**: Analyze and process documents
+- **Tools**: file_reader, code_interpreter
+- **Tags**: document, analysis, pdf, text
+
+### **Image Generation**
+- **Description**: Generate images from text descriptions
+- **Tools**: image_gen
+- **Tags**: image, generation, art, creative
+
+### **Image Analysis**
+- **Description**: Analyze and describe images
+- **Tools**: image_analysis
+- **Tags**: image, analysis, vision, description
+
+### **Web Search**
+- **Description**: Search the web for information
+- **Tools**: web_search
+- **Tags**: web, search, information, current
+
+### **Math Solving**
+- **Description**: Solve mathematical problems
+- **Tools**: code_interpreter
+- **Tags**: math, mathematics, calculation, problem-solving
+
+### **Text Summarization**
+- **Description**: Summarize and condense text
+- **Tools**: None (text processing)
+- **Tags**: text, summarization, condensation, analysis
+
+### **Translation**
+- **Description**: Translate text between languages
+- **Tools**: None (language processing)
+- **Tags**: translation, language, multilingual, communication
+
+### **Data Analysis**
+- **Description**: Analyze and visualize data
+- **Tools**: code_interpreter
+- **Tags**: data, analysis, visualization, statistics
+
 ## Available Tools
 
 The system supports various built-in tools:
@@ -172,6 +256,7 @@ The system supports various built-in tools:
 - **web_search**: Search the web for information
 - **image_gen**: Generate images from text descriptions
 - **file_reader**: Read and analyze uploaded files
+- **image_analysis**: Analyze and describe images
 
 ## Project Structure
 
@@ -182,7 +267,8 @@ qwen-agent-example/
 │   ├── api.py              # FastAPI application
 │   ├── agent_manager.py    # Agent management
 │   ├── config.py           # Configuration management
-│   └── models.py           # Pydantic models
+│   ├── models.py           # Pydantic models
+│   └── task_types.py       # Task segmentation and configuration
 ├── Qwen-Agent/             # Reference implementation
 ├── main.py                 # Application entry point
 ├── pyproject.toml          # Project configuration and dependencies

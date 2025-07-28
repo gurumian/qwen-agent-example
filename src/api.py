@@ -13,6 +13,7 @@ from .models import (
 )
 from .agent_manager import agent_manager
 from .config import Config
+from .task_types import TaskType, TaskConfiguration
 
 
 app = FastAPI(
@@ -152,6 +153,120 @@ async def delete_agent(agent_id: str):
             return {"message": f"Agent {agent_id} deleted successfully"}
         else:
             raise HTTPException(status_code=404, detail=f"Agent {agent_id} not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/tasks", response_model=List[Dict[str, Any]])
+async def list_tasks():
+    """List all available task types."""
+    try:
+        tasks = []
+        for task_type in agent_manager.get_available_tasks():
+            task_info = agent_manager.get_task_info(task_type)
+            if task_info:
+                tasks.append({
+                    "task_type": task_type.value,
+                    "name": task_info.name,
+                    "description": task_info.description,
+                    "tools": task_info.tools,
+                    "tags": task_info.tags
+                })
+        return tasks
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/tasks/{task_type}", response_model=Dict[str, Any])
+async def get_task_info(task_type: str):
+    """Get detailed information about a specific task type."""
+    try:
+        try:
+            task_enum = TaskType(task_type)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid task type: {task_type}")
+        
+        task_info = agent_manager.get_task_info(task_enum)
+        if not task_info:
+            raise HTTPException(status_code=404, detail=f"Task type {task_type} not found")
+        
+        return {
+            "task_type": task_info.task_type.value,
+            "name": task_info.name,
+            "description": task_info.description,
+            "system_message": task_info.system_message,
+            "tools": task_info.tools,
+            "tags": task_info.tags,
+            "temperature": task_info.temperature,
+            "top_p": task_info.top_p,
+            "max_tokens": task_info.max_tokens
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/agents/{agent_id}/task", response_model=Dict[str, Any])
+async def switch_agent_task(agent_id: str, task_type: str, files: Optional[List[str]] = None):
+    """Switch an agent to a specific task type."""
+    try:
+        try:
+            task_enum = TaskType(task_type)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid task type: {task_type}")
+        
+        agent = agent_manager.switch_agent_task(agent_id, task_enum, files)
+        
+        return {
+            "agent_id": agent_id,
+            "task_type": task_type,
+            "status": "switched",
+            "message": f"Agent {agent_id} switched to {task_type} task"
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/chat/task/{task_type}", response_model=ChatResponse)
+async def chat_with_task(task_type: str, request: ChatRequest):
+    """Chat with an agent configured for a specific task type."""
+    try:
+        try:
+            task_enum = TaskType(task_type)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid task type: {task_type}")
+        
+        # Convert messages to the format expected by Qwen-Agent
+        messages = [{"role": msg.role.value, "content": msg.content} for msg in request.messages]
+        
+        # Create a temporary agent for this task
+        temp_agent_id = f"temp_{task_type}_{len(agent_manager.list_agents())}"
+        agent = agent_manager.create_task_agent(
+            temp_agent_id, 
+            task_enum, 
+            request.files,
+            request.model_config
+        )
+        
+        # Get response
+        responses = agent_manager.chat(temp_agent_id, messages, stream=False)
+        
+        # Extract the content from the last assistant message
+        content = ""
+        for response in responses:
+            if response.get("role") == "assistant":
+                content = response.get("content", "")
+        
+        # Clean up temporary agent
+        agent_manager.remove_agent(temp_agent_id)
+        
+        return ChatResponse(content=content)
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -5,6 +5,7 @@ from qwen_agent.tools.base import BaseTool, register_tool
 from qwen_agent.utils.output_beautify import typewriter_print
 
 from .config import Config
+from .task_types import TaskManager, TaskType, TaskConfiguration
 
 
 class AgentManager:
@@ -13,6 +14,7 @@ class AgentManager:
     def __init__(self):
         self.agents: Dict[str, Assistant] = {}
         self.default_config = Config.get_model_config()
+        self.task_manager = TaskManager()
     
     def create_agent(
         self,
@@ -42,6 +44,74 @@ class AgentManager:
         self.agents[agent_id] = agent
         
         return agent
+    
+    def create_task_agent(
+        self,
+        agent_id: str,
+        task_type: TaskType,
+        files: Optional[List[str]] = None,
+        model_config: Optional[Dict[str, Any]] = None
+    ) -> Assistant:
+        """Create an agent configured for a specific task type."""
+        
+        # Get task configuration
+        task_config = self.task_manager.get_task_config(task_type)
+        if not task_config:
+            raise ValueError(f"Unknown task type: {task_type}")
+        
+        # Merge model config with task-specific settings
+        final_model_config = model_config or self.default_config.copy()
+        if task_config.temperature is not None:
+            final_model_config.setdefault('generate_cfg', {})['temperature'] = task_config.temperature
+        if task_config.top_p is not None:
+            final_model_config.setdefault('generate_cfg', {})['top_p'] = task_config.top_p
+        if task_config.max_tokens is not None:
+            final_model_config.setdefault('generate_cfg', {})['max_tokens'] = task_config.max_tokens
+        
+        # Create the agent with task-specific configuration
+        agent = Assistant(
+            llm=final_model_config,
+            system_message=task_config.system_message,
+            function_list=task_config.tools,
+            files=files or []
+        )
+        
+        # Store the agent
+        self.agents[agent_id] = agent
+        
+        return agent
+    
+    def switch_agent_task(
+        self,
+        agent_id: str,
+        task_type: TaskType,
+        files: Optional[List[str]] = None
+    ) -> Assistant:
+        """Switch an existing agent to a different task type."""
+        
+        # Get task configuration
+        task_config = self.task_manager.get_task_config(task_type)
+        if not task_config:
+            raise ValueError(f"Unknown task type: {task_type}")
+        
+        # Get existing agent or create new one
+        agent = self.agents.get(agent_id)
+        if agent:
+            # Update the existing agent's configuration
+            # Note: This is a simplified approach. In practice, you might want to create a new agent
+            # since Qwen-Agent doesn't support dynamic reconfiguration
+            pass
+        
+        # Create new agent with task configuration
+        return self.create_task_agent(agent_id, task_type, files)
+    
+    def get_available_tasks(self) -> List[TaskType]:
+        """Get list of available task types."""
+        return self.task_manager.list_task_types()
+    
+    def get_task_info(self, task_type: TaskType) -> Optional[TaskConfiguration]:
+        """Get information about a specific task type."""
+        return self.task_manager.get_task_config(task_type)
     
     def get_agent(self, agent_id: str) -> Optional[Assistant]:
         """Get an existing agent by ID."""
