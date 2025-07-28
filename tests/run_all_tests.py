@@ -55,6 +55,12 @@ class TestRunner:
                 "file": "test_tasks.py",
                 "description": "Task segmentation and management tests", 
                 "category": "unit"
+            },
+            {
+                "name": "API Security Tests",
+                "file": "test_api_security.py",
+                "description": "Rate limiting, security headers, and API interface tests",
+                "category": "security"
             }
         ]
         

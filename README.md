@@ -338,12 +338,37 @@ The system supports various input and output modalities:
 - **File Upload**: Direct file upload with automatic processing
 - **Temporary File Management**: Automatic cleanup of processed files
 
-### **API Endpoints**
+### **API Interface Specifications**
+
+The chatbot provides a comprehensive REST API with security features and rate limiting.
+
+#### Core Endpoints
+- `GET /health` - Health check with rate limit headers
+- `POST /chat` - Chat with the AI agent (rate limited)
+- `POST /chat/stream` - Stream chat responses (rate limited)
+- `GET /tasks` - List available task types
+- `GET /api/info` - Get API capabilities and features
+- `GET /api/status` - Get API status and statistics
+
+#### Multi-Modal Endpoints
 - `POST /multimodal/process` - Process multi-modal input
 - `POST /multimodal/extract-text` - Extract text from documents
 - `POST /multimodal/analyze-image` - Analyze image metadata
 - `POST /multimodal/upload` - Upload files for processing
 - `DELETE /multimodal/cleanup` - Clean up temporary files
+
+#### Security Features
+- **Rate Limiting**: 60 requests per minute, 1000 per hour
+- **Request Size Validation**: Maximum 10MB per request
+- **Security Headers**: X-Content-Type-Options, X-Frame-Options, X-XSS-Protection
+- **CORS Support**: Configurable cross-origin resource sharing
+
+#### Rate Limit Headers
+All responses include rate limit information:
+- `X-RateLimit-Limit-Minute`: Requests allowed per minute
+- `X-RateLimit-Limit-Hour`: Requests allowed per hour  
+- `X-RateLimit-Remaining-Minute`: Remaining requests this minute
+- `X-RateLimit-Remaining-Hour`: Remaining requests this hour
 
 ## User Interfaces
 
@@ -393,6 +418,7 @@ qwen-agent-example/
 ├── src/                   # Source code
 │   ├── __init__.py        # Package initialization
 │   ├── api.py             # FastAPI application and endpoints
+│   ├── api_security.py    # API security and rate limiting
 │   ├── agent_manager.py   # Qwen-Agent instance management
 │   ├── config.py          # Configuration management
 │   ├── models.py          # Pydantic models
@@ -406,6 +432,7 @@ qwen-agent-example/
 │   ├── view_results.py    # Test results viewer
 │   ├── scripts/           # Individual test scripts
 │   │   ├── test_api.py    # Core API functionality tests
+│   │   ├── test_api_security.py # API security and rate limiting tests
 │   │   ├── test_multimodal.py # Multi-modal processing tests
 │   │   ├── test_webui.py  # Web interface tests
 │   │   └── test_tasks.py  # Task management tests

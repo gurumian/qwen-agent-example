@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException, Depends, File, UploadFile
+from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 import json
+import time
 from typing import List, Dict, Any, Union, Optional
 
 from .models import (
@@ -17,12 +18,15 @@ from .agent_manager import agent_manager
 from .config import Config
 from .task_types import TaskType, TaskConfiguration
 from .multimodal import multimodal_processor, multimodal_response
+from .api_security import api_security, require_rate_limit
 
 
 app = FastAPI(
     title="Qwen-Agent Chatbot API",
-    description="A chatbot API powered by Qwen-Agent framework",
-    version="0.1.0"
+    description="A chatbot API powered by Qwen-Agent framework with security features",
+    version="0.1.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
 )
 
 # Add CORS middleware
@@ -36,13 +40,68 @@ app.add_middleware(
 
 
 @app.get("/health", response_model=HealthResponse)
-async def health_check():
+async def health_check(req: Request):
     """Health check endpoint."""
-    return HealthResponse()
+    # Add rate limit headers to response
+    response = HealthResponse()
+    headers = api_security.get_rate_limit_headers(req)
+    return JSONResponse(
+        content=response.model_dump(),
+        headers=headers
+    )
+
+
+@app.get("/api/info")
+async def api_info():
+    """Get API information and capabilities."""
+    return {
+        "name": "Qwen-Agent Chatbot API",
+        "version": "0.1.0",
+        "description": "A chatbot API powered by Qwen-Agent framework",
+        "features": [
+            "Multi-modal chat support",
+            "Task-based conversations",
+            "Streaming responses",
+            "File upload and processing",
+            "Rate limiting",
+            "Security headers"
+        ],
+        "endpoints": {
+            "chat": "/chat",
+            "chat_stream": "/chat/stream",
+            "health": "/health",
+            "api_info": "/api/info",
+            "tasks": "/tasks",
+            "multimodal": "/multimodal/*"
+        },
+        "rate_limits": {
+            "requests_per_minute": api_security.rate_limiter.requests_per_minute,
+            "requests_per_hour": api_security.rate_limiter.requests_per_hour
+        }
+    }
+
+
+@app.get("/api/status")
+async def api_status():
+    """Get API status and statistics."""
+    return {
+        "status": "healthy",
+        "timestamp": time.time(),
+        "uptime": "N/A",  # Could implement uptime tracking
+        "model": Config.DEFAULT_MODEL,
+        "model_server": Config.MODEL_SERVER_URL,
+        "rate_limits": {
+            "requests_per_minute": api_security.rate_limiter.requests_per_minute,
+            "requests_per_hour": api_security.rate_limiter.requests_per_hour
+        }
+    }
 
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, req: Request):
+    """Chat endpoint for non-streaming responses."""
+    # Apply rate limiting
+    require_rate_limit(req)
     """Chat endpoint for non-streaming responses."""
     try:
         # Process multi-modal input if enabled
@@ -106,7 +165,10 @@ async def chat(request: ChatRequest):
 
 
 @app.post("/chat/stream")
-async def chat_stream(request: ChatRequest):
+async def chat_stream(request: ChatRequest, req: Request):
+    """Chat endpoint for streaming responses."""
+    # Apply rate limiting
+    require_rate_limit(req)
     """Chat endpoint for streaming responses."""
     try:
         # Convert messages to the format expected by Qwen-Agent
