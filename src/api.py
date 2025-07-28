@@ -1,19 +1,22 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import json
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 from .models import (
     ChatRequest, 
     ChatResponse, 
     Message, 
     HealthResponse,
-    AssistantResponse
+    AssistantResponse,
+    MediaItem,
+    MultiModalMessage
 )
 from .agent_manager import agent_manager
 from .config import Config
 from .task_types import TaskType, TaskConfiguration
+from .multimodal import multimodal_processor, multimodal_response
 
 
 app = FastAPI(
@@ -42,8 +45,23 @@ async def health_check():
 async def chat(request: ChatRequest):
     """Chat endpoint for non-streaming responses."""
     try:
-        # Convert messages to the format expected by Qwen-Agent
-        messages = [{"role": msg.role.value, "content": msg.content} for msg in request.messages]
+        # Process multi-modal input if enabled
+        processed_messages = []
+        for msg in request.messages:
+            if request.multimodal:
+                # Process multi-modal content
+                processed_content = multimodal_processor.process_input(msg.content)
+                processed_messages.append({
+                    "role": msg.role.value,
+                    "content": processed_content["content"],
+                    "media": processed_content.get("media", [])
+                })
+            else:
+                # Standard text processing
+                processed_messages.append({
+                    "role": msg.role.value,
+                    "content": msg.content
+                })
         
         # Create or get agent
         agent_id = "default"  # You could make this configurable
@@ -60,15 +78,28 @@ async def chat(request: ChatRequest):
             )
         
         # Get response
-        responses = agent_manager.chat(agent_id, messages, stream=False)
+        responses = agent_manager.chat(agent_id, processed_messages, stream=False)
         
         # Extract the content from the last assistant message
         content = ""
+        response_media = []
         for response in responses:
             if response.get("role") == "assistant":
                 content = response.get("content", "")
+                # Extract any media from response
+                if "media" in response:
+                    response_media.extend(response["media"])
         
-        return ChatResponse(content=content)
+        # Format response with multi-modal support
+        if request.multimodal and response_media:
+            formatted_response = multimodal_response.format_response(content, response_media)
+            return ChatResponse(
+                content=formatted_response["content"],
+                media=formatted_response.get("media"),
+                ui_signal=formatted_response.get("ui_signal")
+            )
+        else:
+            return ChatResponse(content=content)
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -267,6 +298,86 @@ async def chat_with_task(task_type: str, request: ChatRequest):
         
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/multimodal/process", response_model=Dict[str, Any])
+async def process_multimodal_input(content: Union[str, Dict, List]):
+    """Process multi-modal input and return structured data."""
+    try:
+        result = multimodal_processor.process_input(content)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/multimodal/extract-text", response_model=Dict[str, str])
+async def extract_text_from_document(file_path: str):
+    """Extract text from a document file."""
+    try:
+        text = multimodal_processor.extract_text_from_document(file_path)
+        return {"file_path": file_path, "extracted_text": text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/multimodal/analyze-image", response_model=Dict[str, Any])
+async def analyze_image(image_path: str):
+    """Analyze an image and return metadata."""
+    try:
+        metadata = multimodal_processor.process_image_for_analysis(image_path)
+        return {"image_path": image_path, "metadata": metadata}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/multimodal/upload", response_model=Dict[str, Any])
+async def upload_file(file: UploadFile = File(...)):
+    """Upload a file for multi-modal processing."""
+    try:
+        # Validate file size
+        if file.size and file.size > multimodal_processor.max_file_size:
+            raise HTTPException(status_code=413, detail="File too large")
+        
+        # Save file to temp directory
+        file_path = multimodal_processor.temp_dir / file.filename
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        # Process the uploaded file
+        file_info = {
+            "filename": file.filename,
+            "file_path": str(file_path),
+            "content_type": file.content_type,
+            "size": len(content)
+        }
+        
+        # Determine file type and process accordingly
+        if file.content_type and 'image' in file.content_type:
+            metadata = multimodal_processor.process_image_for_analysis(str(file_path))
+            file_info["type"] = "image"
+            file_info["metadata"] = metadata
+        elif file.content_type and 'pdf' in file.content_type:
+            text = multimodal_processor.extract_text_from_document(str(file_path))
+            file_info["type"] = "document"
+            file_info["extracted_text"] = text
+        
+        return file_info
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/multimodal/cleanup")
+async def cleanup_temp_files():
+    """Clean up temporary files."""
+    try:
+        multimodal_processor.cleanup_temp_files()
+        return {"message": "Temporary files cleaned up successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

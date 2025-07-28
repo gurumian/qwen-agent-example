@@ -14,16 +14,33 @@ class Message(BaseModel):
     content: str
 
 
+class MediaItem(BaseModel):
+    type: str  # "image", "document", "audio", "video"
+    source: str  # "url", "file", "base64"
+    url: Optional[str] = None
+    path: Optional[str] = None
+    mime_type: Optional[str] = None
+    data: Optional[str] = None  # base64 encoded data
+
+
+class MultiModalMessage(BaseModel):
+    role: MessageRole
+    content: str
+    media: Optional[List[MediaItem]] = None
+
+
 class ChatRequest(BaseModel):
     messages: List[Message]
     system_message: Optional[str] = None
     tools: Optional[List[str]] = None
     files: Optional[List[str]] = None
     model_config: Optional[Dict[str, Any]] = None
+    multimodal: Optional[bool] = False
 
 
 class ChatResponse(BaseModel):
     content: str
+    media: Optional[List[MediaItem]] = None
     ui_signal: Optional[Dict[str, Any]] = None
 
 

@@ -8,6 +8,7 @@ A modern chatbot system built on top of the Qwen-Agent framework, providing a Fa
 - 🛠️ **Tool Integration**: Built-in support for code interpreter, web search, image generation, and more
 - 📡 **Streaming Responses**: Real-time streaming chat responses
 - 🎯 **Task Segmentation**: Pre-configured task types with specialized tools and system messages
+- 🖼️ **Multi-Modal Support**: Handle images, documents, URLs, and base64 data seamlessly
 - 🔧 **Extensible Architecture**: Easy to add custom tools and agents
 - 🌐 **RESTful API**: Clean FastAPI-based API with automatic documentation
 - 📁 **File Processing**: Support for document upload and analysis
@@ -64,20 +65,46 @@ DEFAULT_MODEL=qwen-max-latest
 DEFAULT_MODEL_TYPE=qwen_dashscope
 ```
 
-### 3. Running the Server
+### 3. Running the Application
 
+#### **API Server (Default)**
 ```bash
 # Quick start with development script
 ./scripts/dev.sh
 
 # Or manually
-uv run python main.py
+uv run python main.py --mode api
 
 # Or using uvicorn directly
 uv run uvicorn src.api:app --host 0.0.0.0 --port 8002
 ```
 
+#### **Web Interface (Gradio)**
+```bash
+# Launch Gradio web interface
+uv run python main.py --mode webui
+
+# With custom port
+uv run python main.py --mode webui --webui-port 8080
+
+# With public share link
+uv run python main.py --mode webui --share
+```
+
+#### **Command Line Interface**
+```bash
+# Launch interactive CLI
+uv run python main.py --mode cli
+
+# Send a single message
+uv run python main.py --mode cli --message "Hello, how are you?"
+
+# With specific task
+uv run python main.py --mode cli --task "Code Execution"
+```
+
 The API will be available at `http://localhost:8002`
+The Web Interface will be available at `http://localhost:7860`
 
 ### 4. API Documentation
 
@@ -166,6 +193,51 @@ for task in tasks:
     print(f"Tools: {task['tools']}")
 ```
 
+### Multi-Modal Chat
+
+```python
+import requests
+
+# Chat with multi-modal input (images, documents, URLs)
+response = requests.post("http://localhost:8002/chat", json={
+    "messages": [
+        {"role": "user", "content": "Analyze this image: https://example.com/image.jpg"}
+    ],
+    "multimodal": True
+})
+
+print(response.json()["content"])
+```
+
+### Process Multi-Modal Input
+
+```python
+import requests
+
+# Process text with embedded URLs and media
+response = requests.post("http://localhost:8002/multimodal/process", json={
+    "text": "Check out this image: https://example.com/image.jpg and this document: document.pdf"
+})
+
+result = response.json()
+print(f"Content: {result['content']}")
+print(f"Media items: {result['media']}")
+```
+
+### Upload and Process Files
+
+```python
+import requests
+
+# Upload a file for processing
+with open("document.pdf", "rb") as f:
+    files = {"file": ("document.pdf", f, "application/pdf")}
+    response = requests.post("http://localhost:8002/multimodal/upload", files=files)
+
+file_info = response.json()
+print(f"Uploaded: {file_info}")
+```
+
 ## Model Configuration
 
 ### Local Ollama (Default)
@@ -248,6 +320,62 @@ The system supports various pre-configured task types:
 - **Tools**: code_interpreter
 - **Tags**: data, analysis, visualization, statistics
 
+## Multi-Modal Support
+
+The system supports various input and output modalities:
+
+### **Supported Input Types**
+- **Text**: Plain text, markdown, and structured text
+- **Images**: JPG, PNG, GIF, BMP, WebP formats
+- **Documents**: PDF, TXT, MD, DOCX, DOC formats
+- **URLs**: Direct links to images and documents
+- **Base64**: Encoded image and document data
+
+### **Processing Capabilities**
+- **Image Analysis**: Extract metadata, format, size, and properties
+- **Document Text Extraction**: Extract text from PDFs, Word docs, and text files
+- **URL Processing**: Fetch and analyze remote media
+- **File Upload**: Direct file upload with automatic processing
+- **Temporary File Management**: Automatic cleanup of processed files
+
+### **API Endpoints**
+- `POST /multimodal/process` - Process multi-modal input
+- `POST /multimodal/extract-text` - Extract text from documents
+- `POST /multimodal/analyze-image` - Analyze image metadata
+- `POST /multimodal/upload` - Upload files for processing
+- `DELETE /multimodal/cleanup` - Clean up temporary files
+
+## User Interfaces
+
+The system provides multiple ways to interact with the chatbot:
+
+### **🌐 Web Interface (Gradio)**
+- **Modern UI**: Clean, responsive web interface built with Gradio
+- **Task Management**: Dropdown to select and switch between task types
+- **Multi-Modal Support**: File upload, image processing, document analysis
+- **Chat History**: Persistent conversation history with export functionality
+- **Analytics**: Built-in analytics dashboard with chat statistics
+- **Real-time Interaction**: Live chat with streaming responses
+- **Task Information**: Detailed information about each task type
+- **System Status**: Real-time system information and health monitoring
+
+### **💻 Command Line Interface (CLI)**
+- **Interactive Commands**: Full-featured command-line interface
+- **Task Switching**: Switch between different task types
+- **Chat History**: View and export conversation history
+- **System Status**: Check API connection and system health
+- **Batch Processing**: Send single messages or run in interactive mode
+- **Task Information**: Get detailed information about available tasks
+- **Export Functionality**: Export chat history to files
+
+### **🔌 API Interface**
+- **RESTful API**: Full REST API for programmatic access
+- **WebSocket Support**: Real-time streaming responses
+- **Multi-Modal Endpoints**: Dedicated endpoints for file processing
+- **Agent Management**: Create, manage, and switch between agents
+- **Task Configuration**: Dynamic task switching and configuration
+- **Health Monitoring**: System health and status endpoints
+
 ## Available Tools
 
 The system supports various built-in tools:
@@ -268,7 +396,10 @@ qwen-agent-example/
 │   ├── agent_manager.py    # Agent management
 │   ├── config.py           # Configuration management
 │   ├── models.py           # Pydantic models
-│   └── task_types.py       # Task segmentation and configuration
+│   ├── task_types.py       # Task segmentation and configuration
+│   ├── multimodal.py       # Multi-modal processing and support
+│   ├── webui.py            # Gradio web interface
+│   └── cli.py              # Command line interface
 ├── Qwen-Agent/             # Reference implementation
 ├── main.py                 # Application entry point
 ├── pyproject.toml          # Project configuration and dependencies
