@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-time Chat with SSE (v10 - Fixed Thinking Logic)</title>
+    <title>Real-time Chat with SSE (v15 - Clean Separation)</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
@@ -153,6 +153,8 @@
             border-radius: 3px;
             font-size: 12px;
             margin-bottom: 10px;
+            min-height: 20px;
+            line-height: 1.4;
         }
         .status-indicator.connecting {
             background: #ffc107;
@@ -161,47 +163,16 @@
         .status-indicator.error {
             background: #dc3545;
         }
-        
-        .thinking-message {
-            background: #e3f2fd !important;
-            color: #1565c0 !important;
-            border: 1px solid #2196f3 !important;
-            margin-right: auto;
-            font-style: italic;
-            border-left: 4px solid #1976d2 !important;
-            font-size: 13px;
-        }
-        
-        .thinking-message strong {
-            color: #495057 !important;
-        }
-        
-        .thinking-message em {
-            color: #6c757d !important;
-        }
-        
-        .thinking-area {
-            margin-top: 10px;
-            padding: 12px;
+        .status-indicator.thinking {
             background: #e3f2fd;
-            border: 1px solid #2196f3;
-            border-radius: 8px;
-            border-left: 4px solid #1976d2;
-        }
-        
-        .thinking-header {
-            font-size: 12px;
             color: #1565c0;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        
-        .thinking-content {
-            font-size: 13px;
-            color: #0d47a1;
-            line-height: 1.4;
+            border-left: 4px solid #1976d2;
             font-style: italic;
         }
+        
+
+        
+
     </style>
 </head>
 <body>
@@ -212,10 +183,6 @@
         <div style="padding: 10px; background: #f8f9fa; border-bottom: 1px solid #ddd;">
             <div class="status-indicator" id="statusIndicator">
                 Ready
-            </div>
-            <div class="thinking-area" id="thinkingArea" style="display: none;">
-                <div class="thinking-header">🤔 AI is thinking...</div>
-                <div class="thinking-content" id="thinkingContent"></div>
             </div>
         </div>
         <div class="chat-messages" id="chatMessages">
@@ -242,20 +209,15 @@
         let conversationHistory = [];
         let eventSource = null;
         let currentResponseDiv = null;
-        const thinkingArea = document.getElementById('thinkingArea');
-        const thinkingContent = document.getElementById('thinkingContent');
 
         function updateStatus(status, type = 'ready') {
             statusIndicator.textContent = status;
             statusIndicator.className = `status-indicator ${type}`;
         }
 
-        function addMessage(content, isUser = false, isThinking = false) {
+        function addMessage(content, isUser = false) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : isThinking ? 'thinking-message' : 'assistant-message'}`;
-            
-            // Debug: log the class being applied
-            console.log('Creating message with class:', messageDiv.className, 'isThinking:', isThinking);
+            messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
             
             if (isUser) {
                 messageDiv.textContent = content;
@@ -315,13 +277,11 @@
             // Add user message to chat
             addMessage(message, true);
 
-            // Show thinking area
-            thinkingArea.style.display = 'block';
-            thinkingContent.innerHTML = '<em>Starting to think...</em><span class="streaming-cursor"></span>';
+            // Show thinking status
+            updateStatus('🤔 Starting to think...', 'thinking');
 
-            // Create final response container
-            currentResponseDiv = addMessage('', false, false);
-            currentResponseDiv.innerHTML = '<span class="streaming-cursor"></span>';
+            // Don't create response container yet - wait until we have clean content
+            currentResponseDiv = null;
 
             try {
                 // Prepare messages for API
@@ -340,7 +300,6 @@
 
             } catch (error) {
                 console.error('Error:', error);
-                thinkingArea.style.display = 'none';
                 addErrorMessage(error.message);
                 updateStatus('Error: ' + error.message, 'error');
             } finally {
@@ -380,11 +339,15 @@
                 try {
                     if (event.data === '[DONE]') {
                         // Streaming complete
-                        thinkingArea.style.display = 'none';
                         
                         // Show final clean response
                         const finalCleanContent = cleanResponseContent(fullResponse);
-                        currentResponseDiv.innerHTML = marked.parse(finalCleanContent);
+                        if (finalCleanContent && finalCleanContent.trim() !== '') {
+                            if (!currentResponseDiv) {
+                                currentResponseDiv = addMessage('', false);
+                            }
+                            currentResponseDiv.innerHTML = marked.parse(finalCleanContent);
+                        }
                         
                         // Update conversation history
                         conversationHistory.push({ role: 'user', content: messageInput.value });
@@ -411,31 +374,24 @@
                             console.log('Processing message:', {
                                 newThinkContent: newThinkContent ? newThinkContent.substring(0, 50) + '...' : null,
                                 cleanContent: cleanContent ? cleanContent.substring(0, 50) + '...' : null,
-                                hasThinkingArea: thinkingArea.style.display !== 'none',
                                 hasResponseDiv: !!currentResponseDiv
                             });
                             
                             if (newThinkContent) {
-                                // Show thinking content in thinking area
-                                console.log('🟦 THINKING PHASE - Updating thinking area');
+                                // Show thinking content in status area
+                                console.log('🟦 THINKING PHASE - Showing thinking in status');
                                 thinkContent = newThinkContent;
-                                thinkingArea.style.display = 'block';
-                                thinkingContent.innerHTML = marked.parse(thinkContent) + '<span class="streaming-cursor"></span>';
-                                // Hide response div during thinking
-                                if (currentResponseDiv) {
-                                    currentResponseDiv.style.display = 'none';
-                                }
+                                updateStatus(`🤔 ${thinkContent}`, 'thinking');
                             }
                             
                             if (cleanContent && cleanContent.trim() !== '') {
-                                // Final response phase - hide thinking area, show response
-                                console.log('🟩 RESPONSE PHASE - Hiding thinking area, showing response');
-                                thinkingArea.style.display = 'none';
-                                if (currentResponseDiv) {
-                                    currentResponseDiv.style.display = 'block';
-                                    currentResponseDiv.innerHTML = marked.parse(cleanContent) + '<span class="streaming-cursor"></span>';
-                                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                                // Show response content in message balloon
+                                console.log('🟩 RESPONSE PHASE - Showing response in message');
+                                if (!currentResponseDiv) {
+                                    currentResponseDiv = addMessage('', false);
                                 }
+                                currentResponseDiv.innerHTML = marked.parse(cleanContent) + '<span class="streaming-cursor"></span>';
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
                             }
                         }
                     }
