@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-time Chat with SSE (v17 - Strict Thinking Logic)</title>
+    <title>Real-time Chat with SSE (v21 - Real-time Message Updates)</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
@@ -168,6 +168,10 @@
             color: #1565c0;
             border-left: 4px solid #1976d2;
             font-style: italic;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
         
 
@@ -213,6 +217,14 @@
         function updateStatus(status, type = 'ready') {
             statusIndicator.textContent = status;
             statusIndicator.className = `status-indicator ${type}`;
+            
+            // Auto-scroll to bottom ONLY for thinking content
+            if (type === 'thinking') {
+                // Small delay to ensure content is updated
+                setTimeout(() => {
+                    statusIndicator.scrollTop = statusIndicator.scrollHeight;
+                }, 10);
+            }
         }
 
         function addMessage(content, isUser = false) {
@@ -350,6 +362,11 @@
                                 currentResponseDiv = addMessage('', false);
                             }
                             currentResponseDiv.innerHTML = marked.parse(finalCleanContent);
+                            
+                            // Ensure the final message is visible
+                            setTimeout(() => {
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                            }, 100);
                         }
                         
                         // Update conversation history
@@ -357,6 +374,8 @@
                         conversationHistory.push({ role: 'assistant', content: finalCleanContent });
                         
                         eventSource.close();
+                        // Reset scroll position when switching to ready status
+                        statusIndicator.scrollTop = 0;
                         updateStatus('Ready');
                         return;
                     }
@@ -387,14 +406,19 @@
                                 updateStatus(`🤔 ${thinkContent}`, 'thinking');
                             }
                             
-                            if (cleanContent && cleanContent.trim() !== '' && !newThinkContent) {
-                                // Show response content in message balloon ONLY if no thinking content
-                                console.log('🟩 RESPONSE PHASE - Showing response in message');
+                            if (cleanContent && cleanContent.trim() !== '') {
+                                // Show response content in message balloon in real-time
+                                console.log('🟩 RESPONSE PHASE - Updating response in real-time');
                                 if (!currentResponseDiv) {
                                     currentResponseDiv = addMessage('', false);
                                 }
+                                // Update content in real-time with streaming cursor
                                 currentResponseDiv.innerHTML = marked.parse(cleanContent) + '<span class="streaming-cursor"></span>';
-                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                                
+                                // Ensure the new message is visible
+                                setTimeout(() => {
+                                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                                }, 100);
                             }
                         }
                     }
