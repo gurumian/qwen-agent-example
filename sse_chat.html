@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-time Chat with SSE (v15 - Clean Separation)</title>
+    <title>Real-time Chat with SSE (v17 - Strict Thinking Logic)</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
@@ -240,8 +240,11 @@
         }
 
         function cleanResponseContent(content) {
-            // Remove <think> tags and their content
-            return content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+            // Remove complete <think> tags and their content
+            let cleaned = content.replace(/<think>[\s\S]*?<\/think>/g, '');
+            // Also remove partial <think> content (for streaming)
+            cleaned = cleaned.replace(/<think>[\s\S]*/g, '');
+            return cleaned.trim();
         }
 
         function extractThinkContent(content) {
@@ -384,8 +387,8 @@
                                 updateStatus(`🤔 ${thinkContent}`, 'thinking');
                             }
                             
-                            if (cleanContent && cleanContent.trim() !== '') {
-                                // Show response content in message balloon
+                            if (cleanContent && cleanContent.trim() !== '' && !newThinkContent) {
+                                // Show response content in message balloon ONLY if no thinking content
                                 console.log('🟩 RESPONSE PHASE - Showing response in message');
                                 if (!currentResponseDiv) {
                                     currentResponseDiv = addMessage('', false);
