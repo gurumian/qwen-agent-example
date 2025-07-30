@@ -250,8 +250,7 @@ class ChatbotWebUI:
                         task_dropdown = gr.Dropdown(
                             choices=self._get_task_names(),
                             value="General Chat",
-                            label="Select Task Type",
-                            info="Choose the type of task for the conversation"
+                            label="Select Task Type (Choose the type of task for the conversation)"
                         )
                         
                         # Chat history
@@ -260,7 +259,8 @@ class ChatbotWebUI:
                             height=400,
                             show_label=True,
                             container=True,
-                            bubble_full_width=False
+                            bubble_full_width=False,
+                            type="messages"
                         )
                         
                         # Message input
@@ -276,9 +276,8 @@ class ChatbotWebUI:
                         # Multi-modal options
                         with gr.Row():
                             multimodal_checkbox = gr.Checkbox(
-                                label="Enable Multi-Modal",
-                                value=False,
-                                info="Process images, documents, and URLs in messages"
+                                label="Enable Multi-Modal (Process images, documents, and URLs in messages)",
+                                value=False
                             )
                             clear_btn = gr.Button("Clear Chat", variant="secondary")
                     
@@ -286,10 +285,9 @@ class ChatbotWebUI:
                     with gr.Group():
                         gr.Markdown("### 📁 File Upload (Multi-Modal)")
                         file_upload = gr.File(
-                            label="Upload Files",
+                            label="Upload Files (images, documents, or text files for processing)",
                             file_count="multiple",
-                            file_types=["image", "pdf", "text"],
-                            info="Upload images, documents, or text files for processing"
+                            file_types=["image", "pdf", "text"]
                         )
                         upload_send_btn = gr.Button("Send with Files", variant="primary")
                 
