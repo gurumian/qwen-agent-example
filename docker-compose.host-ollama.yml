@@ -4,11 +4,12 @@ services:
   # Qwen-Agent Chatbot API
   qwen-agent-chatbot:
     build: .
-    network_mode: host
+    ports:
+      - "8002:8002"
     environment:
       - DEFAULT_MODEL=qwen3:14b
       - DEFAULT_MODEL_TYPE=oai
-      - MODEL_SERVER_URL=http://localhost:11434/v1
+      - MODEL_SERVER_URL=http://host.docker.internal:11434/v1
       - MODEL_SERVER_API_KEY=EMPTY
       - HOST=0.0.0.0
       - PORT=8002
@@ -27,19 +28,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-
-  # Optional: Nginx reverse proxy (uncomment if needed)
-  # nginx:
-  #   image: nginx:alpine
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf
-  #     - ./ssl:/etc/nginx/ssl
-  #   depends_on:
-  #     - qwen-agent-chatbot
-  #   restart: unless-stopped
-
- 
+networks:
+  default:
+    name: qwen-agent-network 

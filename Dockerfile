@@ -2,7 +2,7 @@
 # Multi-stage build for optimized production image
 
 # Stage 1: Build stage
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -20,17 +20,20 @@ RUN apt-get update && apt-get install -y \
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
+# Add uv to PATH
+ENV PATH="/root/.local/bin:$PATH"
+
 # Set working directory
 WORKDIR /app
 
 # Copy dependency files
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml uv.lock README.md ./
 
 # Install dependencies
 RUN uv sync --frozen
 
 # Stage 2: Production stage
-FROM python:3.11-slim as production
+FROM python:3.11-slim AS production
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -45,6 +48,9 @@ RUN apt-get update && apt-get install -y \
 
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Add uv to PATH
+ENV PATH="/root/.local/bin:$PATH"
 
 # Create non-root user for security
 RUN groupadd -r mcp && useradd -r -g mcp -m mcp
