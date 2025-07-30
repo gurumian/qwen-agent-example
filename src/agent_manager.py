@@ -155,7 +155,10 @@ class AgentManager:
         """Non-streaming chat response."""
         responses = []
         for response in agent.run(messages=messages):
-            responses.extend(response)
+            if isinstance(response, list):
+                responses.extend(response)
+            else:
+                responses.append(response)
         return responses
 
 

@@ -41,6 +41,9 @@ class ChatbotWebUI:
     
     def _get_task_names(self) -> List[str]:
         """Get list of task names for the dropdown."""
+        if not self.available_tasks:
+            # Fallback when API server is not available
+            return ["General Chat"]
         return [task["name"] for task in self.available_tasks]
     
     def _get_task_by_name(self, task_name: str) -> Optional[Dict[str, Any]]:
@@ -80,17 +83,28 @@ class ChatbotWebUI:
             if task_name != "General Chat":
                 self._switch_task(task_name)
             
+            # Build messages array from history and current message
+            messages = []
+            
+            # Add conversation history
+            for msg_pair in history:
+                if isinstance(msg_pair, list) and len(msg_pair) == 2:
+                    # History is in [user_msg, assistant_msg] format
+                    messages.append({"role": "user", "content": msg_pair[0]})
+                    messages.append({"role": "assistant", "content": msg_pair[1]})
+            
+            # Add current message
+            messages.append({"role": "user", "content": message})
+            
             # Prepare the request
             request_data = {
-                "messages": [
-                    {"role": "user", "content": message}
-                ],
+                "messages": messages,
                 "multimodal": multimodal,
                 "llm_config": None
             }
             
-            # Send request to API
-            response = requests.post(f"{self.api_url}/chat", json=request_data)
+            # Send request to API with timeout
+            response = requests.post(f"{self.api_url}/chat", json=request_data, timeout=30)
             
             if response.status_code == 200:
                 result = response.json()
@@ -106,14 +120,21 @@ class ChatbotWebUI:
                 if result.get("ui_signal"):
                     content += f"\n\n**UI Signal:** {result['ui_signal']['type']}"
                 
-                return content, history + [[message, content]]
+                # Return the simple format that was working: [user_msg, assistant_msg]
+                return "", history + [[message, content]]
             else:
                 error_msg = f"❌ API Error: {response.status_code} - {response.text}"
-                return error_msg, history + [[message, error_msg]]
+                return "", history + [[message, error_msg]]
                 
+        except requests.exceptions.Timeout:
+            error_msg = "❌ Request timeout - the API took too long to respond"
+            return "", history + [[message, error_msg]]
+        except requests.exceptions.ConnectionError:
+            error_msg = "❌ Connection error - cannot reach the API server"
+            return "", history + [[message, error_msg]]
         except Exception as e:
             error_msg = f"❌ Error: {str(e)}"
-            return error_msg, history + [[message, error_msg]]
+            return "", history + [[message, error_msg]]
     
     def _process_multimodal_message(self, message: str, files: List[str], 
                                   history: List[List[str]], task_name: str) -> Tuple[str, List[List[str]]]:
@@ -142,12 +163,12 @@ class ChatbotWebUI:
                     else:
                         multimodal_message += f"{i}. {info['error']}\n"
             
-            # Process the message
+            # Process the message using the updated _process_message function
             return self._process_message(multimodal_message, history, task_name, multimodal=True)
             
         except Exception as e:
             error_msg = f"❌ Multi-modal processing error: {str(e)}"
-            return error_msg, history + [[message, error_msg]]
+            return "", history + [[message, error_msg]]
     
     def _get_task_info(self, task_name: str) -> str:
         """Get detailed information about a task."""
@@ -256,11 +277,7 @@ class ChatbotWebUI:
                         # Chat history
                         chatbot = gr.Chatbot(
                             label="Chat History",
-                            height=400,
-                            show_label=True,
-                            container=True,
-                            bubble_full_width=False,
-                            type="messages"
+                            height=400
                         )
                         
                         # Message input
@@ -325,7 +342,14 @@ class ChatbotWebUI:
             def send_message(message, history, task_name, multimodal):
                 if not message.strip():
                     return "", history
-                return self._process_message(message, history, task_name, multimodal)
+                
+                try:
+                    result = self._process_message(message, history, task_name, multimodal)
+                    new_message, new_history = result
+                    return "", new_history
+                except Exception as e:
+                    error_msg = f"❌ Error processing message: {str(e)}"
+                    return "", history + [[message, error_msg]]
             
             def send_with_files(message, files, history, task_name):
                 if not message.strip() and not files:
@@ -414,7 +438,10 @@ def launch_webui(share: bool = False, server_name: str = "0.0.0.0", server_port:
         server_port=server_port,
         share=share,
         show_error=True,
-        quiet=False
+        quiet=False,
+        show_api=False,
+        favicon_path=None,
+        app_kwargs={"docs_url": None, "redoc_url": None}
     )
 
 

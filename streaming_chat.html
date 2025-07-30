@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen Agent Chat - Streaming</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .chat-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .chat-header {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fafafa;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .assistant-message {
+            background: #e9ecef;
+            color: #333;
+            margin-right: auto;
+        }
+        .thinking-message {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            margin-right: auto;
+            font-style: italic;
+        }
+        .assistant-message h1, .assistant-message h2, .assistant-message h3 {
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .assistant-message code {
+            background: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .assistant-message pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .assistant-message ul, .assistant-message ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .assistant-message blockquote {
+            border-left: 4px solid #007bff;
+            margin: 10px 0;
+            padding-left: 15px;
+            color: #666;
+        }
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #ddd;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+        #messageInput {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        #sendButton {
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #sendButton:hover {
+            background: #0056b3;
+        }
+        #sendButton:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .streaming-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: #007bff;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        .toggle-streaming {
+            margin-bottom: 10px;
+            padding: 5px 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .toggle-streaming:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            🤖 Qwen Agent Chat - Streaming
+        </div>
+        <div style="padding: 10px; background: #f8f9fa; border-bottom: 1px solid #ddd;">
+            <button class="toggle-streaming" onclick="toggleStreaming()">
+                🔄 Toggle Streaming Mode
+            </button>
+            <span id="streamingStatus" style="margin-left: 10px; color: #666;">
+                Current: Non-streaming mode
+            </span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant-message">
+                Hello! I'm your Qwen Agent assistant. How can I help you today?
+                <br><small>💡 Try streaming mode to see my thinking process in real-time!</small>
+            </div>
+        </div>
+        <div class="input-container">
+            <div class="input-row">
+                <input type="text" id="messageInput" placeholder="Type your message here..." />
+                <button id="sendButton">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002';
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const streamingStatus = document.getElementById('streamingStatus');
+
+        let conversationHistory = [];
+        let isStreamingMode = false;
+        let currentStreamingMessage = null;
+        let streamingInterval = null;
+
+        function toggleStreaming() {
+            isStreamingMode = !isStreamingMode;
+            streamingStatus.textContent = `Current: ${isStreamingMode ? 'Streaming mode' : 'Non-streaming mode'}`;
+            streamingStatus.style.color = isStreamingMode ? '#28a745' : '#666';
+        }
+
+        function addMessage(content, isUser = false, isThinking = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : isThinking ? 'thinking-message' : 'assistant-message'}`;
+            
+            if (isUser) {
+                messageDiv.textContent = content;
+            } else {
+                // Parse markdown for assistant messages
+                messageDiv.innerHTML = marked.parse(content);
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageDiv;
+        }
+
+        function addErrorMessage(error) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = `Error: ${error}`;
+            chatMessages.appendChild(errorDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function cleanResponseContent(content) {
+            // Remove <think> tags and their content
+            return content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+        }
+
+        function extractThinkContent(content) {
+            // Look for complete think blocks
+            const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/);
+            if (thinkMatch) {
+                return thinkMatch[1].trim();
+            }
+            
+            // Also look for partial think content (for streaming)
+            const partialThinkMatch = content.match(/<think>([\s\S]*)/);
+            if (partialThinkMatch) {
+                return partialThinkMatch[1].trim();
+            }
+            
+            return null;
+        }
+
+        function simulateTypingEffect(element, text, speed = 10) {
+            let index = 0;
+            element.innerHTML = '';
+            
+            return new Promise((resolve) => {
+                const typeChar = () => {
+                    if (index < text.length) {
+                        element.innerHTML += text[index];
+                        element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                        index++;
+                        setTimeout(typeChar, speed);
+                    } else {
+                        resolve();
+                    }
+                };
+                typeChar();
+            });
+        }
+
+        async function sendMessageStreaming() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Disable input and button
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+
+            // Add user message to chat
+            addMessage(message, true);
+            messageInput.value = '';
+
+            // Create thinking message container
+            const thinkingDiv = addMessage('', false, true);
+            thinkingDiv.innerHTML = '<em>🤔 Thinking...</em><span class="streaming-cursor"></span>';
+
+            // Create final response container
+            const responseDiv = addMessage('', false, false);
+            responseDiv.innerHTML = '<span class="streaming-cursor"></span>';
+
+            try {
+                // Prepare messages for API
+                const messages = [];
+                
+                // Add conversation history
+                for (const msg of conversationHistory) {
+                    messages.push({ role: msg.role, content: msg.content });
+                }
+                
+                // Add current message
+                messages.push({ role: 'user', content: message });
+
+                // Call streaming API
+                const response = await fetch(`${API_URL}/chat/stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: messages,
+                        task_name: 'General Chat',
+                        stream: true
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let fullResponse = '';
+                let thinkContent = '';
+                let pendingText = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // Keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') {
+                                // Streaming complete
+                                thinkingDiv.remove();
+                                
+                                // Show final clean response
+                                const finalCleanContent = cleanResponseContent(fullResponse);
+                                responseDiv.innerHTML = marked.parse(finalCleanContent);
+                                
+                                // Update conversation history
+                                conversationHistory.push({ role: 'user', content: message });
+                                conversationHistory.push({ role: 'assistant', content: finalCleanContent });
+                                return;
+                            }
+
+                            try {
+                                const parsed = JSON.parse(data);
+                                // Handle array of messages (like in the curl output)
+                                const messages = Array.isArray(parsed) ? parsed : [parsed];
+                                
+                                for (const message of messages) {
+                                    if (message.content) {
+                                        const newContent = message.content;
+                                        fullResponse += newContent;
+                                        pendingText += newContent;
+                                        
+                                        // Extract think content from the current chunk
+                                        const newThinkContent = extractThinkContent(newContent);
+                                        if (newThinkContent) {
+                                            thinkContent = newThinkContent;
+                                            thinkingDiv.innerHTML = `<strong>🤔 Thinking:</strong><br>${marked.parse(thinkContent)}<span class="streaming-cursor"></span>`;
+                                        }
+
+                                        // Update final response with typing effect
+                                        const cleanContent = cleanResponseContent(fullResponse);
+                                        if (cleanContent && cleanContent !== pendingText) {
+                                            // Clear the response div and show new content with typing effect
+                                            responseDiv.innerHTML = '';
+                                            await simulateTypingEffect(responseDiv, cleanContent, 5);
+                                            pendingText = cleanContent;
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error parsing streaming data:', e);
+                            }
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                thinkingDiv.remove();
+                addErrorMessage(error.message);
+            } finally {
+                // Re-enable input and button
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        async function sendMessageNonStreaming() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Disable input and button
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+
+            // Add user message to chat
+            addMessage(message, true);
+            messageInput.value = '';
+
+            try {
+                // Prepare messages for API
+                const messages = [];
+                
+                // Add conversation history
+                for (const msg of conversationHistory) {
+                    messages.push({ role: msg.role, content: msg.content });
+                }
+                
+                // Add current message
+                messages.push({ role: 'user', content: message });
+
+                // Call API
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: messages,
+                        task_name: 'General Chat',
+                        stream: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const rawResponse = data.content || 'No response received';
+                
+                // Clean the response (remove think tags)
+                const cleanResponse = cleanResponseContent(rawResponse);
+
+                // Add assistant response to chat
+                addMessage(cleanResponse, false);
+
+                // Update conversation history
+                conversationHistory.push({ role: 'user', content: message });
+                conversationHistory.push({ role: 'assistant', content: cleanResponse });
+
+            } catch (error) {
+                console.error('Error:', error);
+                addErrorMessage(error.message);
+            } finally {
+                // Re-enable input and button
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        async function sendMessage() {
+            if (isStreamingMode) {
+                await sendMessageStreaming();
+            } else {
+                await sendMessageNonStreaming();
+            }
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Focus on input when page loads
+        messageInput.focus();
+    </script>
+</body>
+</html> 

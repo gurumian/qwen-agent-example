@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Chat with SSE (v10 - Fixed Thinking Logic)</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .chat-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .chat-header {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fafafa;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .assistant-message {
+            background: #e9ecef;
+            color: #333;
+            margin-right: auto;
+        }
+        .thinking-message {
+            background: #e3f2fd !important;
+            color: #1565c0 !important;
+            border: 2px solid #2196f3 !important;
+            margin-right: auto;
+            font-style: italic;
+            font-weight: bold;
+        }
+        
+        /* Additional styling for thinking content */
+        .thinking-message strong {
+            color: #0d47a1 !important;
+        }
+        
+        .thinking-message em {
+            color: #1565c0 !important;
+        }
+        .assistant-message h1, .assistant-message h2, .assistant-message h3 {
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .assistant-message code {
+            background: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .assistant-message pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .assistant-message ul, .assistant-message ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .assistant-message blockquote {
+            border-left: 4px solid #007bff;
+            margin: 10px 0;
+            padding-left: 15px;
+            color: #666;
+        }
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #ddd;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+        #messageInput {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        #sendButton {
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #sendButton:hover {
+            background: #0056b3;
+        }
+        #sendButton:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .streaming-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: #007bff;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        .status-indicator {
+            padding: 5px 10px;
+            background: #28a745;
+            color: white;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .status-indicator.connecting {
+            background: #ffc107;
+            color: #333;
+        }
+        .status-indicator.error {
+            background: #dc3545;
+        }
+        
+        .thinking-message {
+            background: #e3f2fd !important;
+            color: #1565c0 !important;
+            border: 1px solid #2196f3 !important;
+            margin-right: auto;
+            font-style: italic;
+            border-left: 4px solid #1976d2 !important;
+            font-size: 13px;
+        }
+        
+        .thinking-message strong {
+            color: #495057 !important;
+        }
+        
+        .thinking-message em {
+            color: #6c757d !important;
+        }
+        
+        .thinking-area {
+            margin-top: 10px;
+            padding: 12px;
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            border-left: 4px solid #1976d2;
+        }
+        
+        .thinking-header {
+            font-size: 12px;
+            color: #1565c0;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .thinking-content {
+            font-size: 13px;
+            color: #0d47a1;
+            line-height: 1.4;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            🤖 Real-time Chat with SSE
+        </div>
+        <div style="padding: 10px; background: #f8f9fa; border-bottom: 1px solid #ddd;">
+            <div class="status-indicator" id="statusIndicator">
+                Ready
+            </div>
+            <div class="thinking-area" id="thinkingArea" style="display: none;">
+                <div class="thinking-header">🤔 AI is thinking...</div>
+                <div class="thinking-content" id="thinkingContent"></div>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant-message">
+                Hello! I'm your AI assistant. How can I help you today?
+                <br><small>💡 This uses Server-Sent Events (SSE) for real-time streaming!</small>
+            </div>
+        </div>
+        <div class="input-container">
+            <div class="input-row">
+                <input type="text" id="messageInput" placeholder="Type your message here..." />
+                <button id="sendButton">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002';
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const statusIndicator = document.getElementById('statusIndicator');
+
+        let conversationHistory = [];
+        let eventSource = null;
+        let currentResponseDiv = null;
+        const thinkingArea = document.getElementById('thinkingArea');
+        const thinkingContent = document.getElementById('thinkingContent');
+
+        function updateStatus(status, type = 'ready') {
+            statusIndicator.textContent = status;
+            statusIndicator.className = `status-indicator ${type}`;
+        }
+
+        function addMessage(content, isUser = false, isThinking = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : isThinking ? 'thinking-message' : 'assistant-message'}`;
+            
+            // Debug: log the class being applied
+            console.log('Creating message with class:', messageDiv.className, 'isThinking:', isThinking);
+            
+            if (isUser) {
+                messageDiv.textContent = content;
+            } else {
+                // Parse markdown for assistant messages
+                messageDiv.innerHTML = marked.parse(content);
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageDiv;
+        }
+
+        function addErrorMessage(error) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = `Error: ${error}`;
+            chatMessages.appendChild(errorDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function cleanResponseContent(content) {
+            // Remove <think> tags and their content
+            return content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+        }
+
+        function extractThinkContent(content) {
+            console.log('🔍 Extracting think content from:', content.substring(0, 100) + '...');
+            
+            // Look for complete think blocks
+            const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/);
+            if (thinkMatch) {
+                console.log('✅ Found complete think block:', thinkMatch[1].substring(0, 50) + '...');
+                return thinkMatch[1].trim();
+            }
+            
+            // Also look for partial think content (for streaming)
+            const partialThinkMatch = content.match(/<think>([\s\S]*)/);
+            if (partialThinkMatch) {
+                console.log('✅ Found partial think block:', partialThinkMatch[1].substring(0, 50) + '...');
+                return partialThinkMatch[1].trim();
+            }
+            
+            console.log('❌ No think content found');
+            return null;
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Disable input and button
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            messageInput.value = '';
+
+            // Add user message to chat
+            addMessage(message, true);
+
+            // Show thinking area
+            thinkingArea.style.display = 'block';
+            thinkingContent.innerHTML = '<em>Starting to think...</em><span class="streaming-cursor"></span>';
+
+            // Create final response container
+            currentResponseDiv = addMessage('', false, false);
+            currentResponseDiv.innerHTML = '<span class="streaming-cursor"></span>';
+
+            try {
+                // Prepare messages for API
+                const messages = [];
+                
+                // Add conversation history
+                for (const msg of conversationHistory) {
+                    messages.push({ role: msg.role, content: msg.content });
+                }
+                
+                // Add current message
+                messages.push({ role: 'user', content: message });
+
+                // Start SSE connection
+                await startSSEConnection(messages);
+
+            } catch (error) {
+                console.error('Error:', error);
+                thinkingArea.style.display = 'none';
+                addErrorMessage(error.message);
+                updateStatus('Error: ' + error.message, 'error');
+            } finally {
+                // Re-enable input and button
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        async function startSSEConnection(messages) {
+            // Close existing connection
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            updateStatus('Connecting...', 'connecting');
+
+            // Create URL with query parameters for SSE
+            const params = new URLSearchParams({
+                messages: JSON.stringify(messages),
+                task_name: 'General Chat',
+                stream: 'true'
+            });
+
+            // Create EventSource for SSE
+            eventSource = new EventSource(`${API_URL}/chat/stream?${params}`);
+
+            let fullResponse = '';
+            let thinkContent = '';
+
+            eventSource.onopen = function(event) {
+                updateStatus('Connected - Streaming...', 'ready');
+            };
+
+            eventSource.onmessage = function(event) {
+                try {
+                    if (event.data === '[DONE]') {
+                        // Streaming complete
+                        thinkingArea.style.display = 'none';
+                        
+                        // Show final clean response
+                        const finalCleanContent = cleanResponseContent(fullResponse);
+                        currentResponseDiv.innerHTML = marked.parse(finalCleanContent);
+                        
+                        // Update conversation history
+                        conversationHistory.push({ role: 'user', content: messageInput.value });
+                        conversationHistory.push({ role: 'assistant', content: finalCleanContent });
+                        
+                        eventSource.close();
+                        updateStatus('Ready');
+                        return;
+                    }
+
+                    const parsed = JSON.parse(event.data);
+                    // Handle array of messages (like in the curl output)
+                    const messageArray = Array.isArray(parsed) ? parsed : [parsed];
+                    
+                    for (const message of messageArray) {
+                        if (message.content) {
+                            // Use the latest complete content from this chunk
+                            fullResponse = message.content;
+                            
+                            // Extract think content from the current chunk
+                            const newThinkContent = extractThinkContent(fullResponse);
+                            const cleanContent = cleanResponseContent(fullResponse);
+                            
+                            console.log('Processing message:', {
+                                newThinkContent: newThinkContent ? newThinkContent.substring(0, 50) + '...' : null,
+                                cleanContent: cleanContent ? cleanContent.substring(0, 50) + '...' : null,
+                                hasThinkingArea: thinkingArea.style.display !== 'none',
+                                hasResponseDiv: !!currentResponseDiv
+                            });
+                            
+                            if (newThinkContent) {
+                                // Show thinking content in thinking area
+                                console.log('🟦 THINKING PHASE - Updating thinking area');
+                                thinkContent = newThinkContent;
+                                thinkingArea.style.display = 'block';
+                                thinkingContent.innerHTML = marked.parse(thinkContent) + '<span class="streaming-cursor"></span>';
+                                // Hide response div during thinking
+                                if (currentResponseDiv) {
+                                    currentResponseDiv.style.display = 'none';
+                                }
+                            }
+                            
+                            if (cleanContent && cleanContent.trim() !== '') {
+                                // Final response phase - hide thinking area, show response
+                                console.log('🟩 RESPONSE PHASE - Hiding thinking area, showing response');
+                                thinkingArea.style.display = 'none';
+                                if (currentResponseDiv) {
+                                    currentResponseDiv.style.display = 'block';
+                                    currentResponseDiv.innerHTML = marked.parse(cleanContent) + '<span class="streaming-cursor"></span>';
+                                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing SSE data:', e);
+                }
+            };
+
+            eventSource.onerror = function(event) {
+                console.error('SSE Error:', event);
+                updateStatus('Connection Error', 'error');
+                eventSource.close();
+            };
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Focus on input when page loads
+        messageInput.focus();
+    </script>
+</body>
+</html> 

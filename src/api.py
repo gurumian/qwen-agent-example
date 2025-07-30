@@ -19,7 +19,7 @@ This module provides the main FastAPI application with endpoints for:
 - python -m src.doc_cli github main_api
 """
 
-from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Request
+from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 import json
@@ -127,15 +127,20 @@ async def chat(request: ChatRequest, req: Request):
     try:
         # Process multi-modal input if enabled
         processed_messages = []
+        media_items = []
+        
         for msg in request.messages:
             if request.multimodal:
                 # Process multi-modal content
                 processed_content = multimodal_processor.process_input(msg.content)
+                # Keep only role and content for Qwen-Agent compatibility
                 processed_messages.append({
                     "role": msg.role.value,
-                    "content": processed_content["content"],
-                    "media": processed_content.get("media", [])
+                    "content": processed_content["content"]
                 })
+                # Store media separately
+                if "media" in processed_content:
+                    media_items.extend(processed_content["media"])
             else:
                 # Standard text processing
                 processed_messages.append({
@@ -171,8 +176,8 @@ async def chat(request: ChatRequest, req: Request):
                     response_media.extend(response["media"])
         
         # Format response with multi-modal support
-        if request.multimodal and response_media:
-            formatted_response = multimodal_response.format_response(content, response_media)
+        if request.multimodal and (response_media or media_items):
+            formatted_response = multimodal_response.format_response(content, response_media + media_items)
             return ChatResponse(
                 content=formatted_response["content"],
                 media=formatted_response.get("media"),
@@ -187,7 +192,7 @@ async def chat(request: ChatRequest, req: Request):
 
 @app.post("/chat/stream")
 async def chat_stream(request: ChatRequest, req: Request):
-    """Chat endpoint for streaming responses."""
+    """Chat endpoint for streaming responses (POST)."""
     # Apply rate limiting
     require_rate_limit(req)
     """Chat endpoint for streaming responses."""
@@ -222,6 +227,63 @@ async def chat_stream(request: ChatRequest, req: Request):
             generate(),
             media_type="text/plain",
             headers={"Cache-Control": "no-cache", "Connection": "keep-alive"}
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/chat/stream")
+async def chat_stream_get(
+    messages: str = Query(..., description="JSON string of messages"),
+    task_name: str = Query("General Chat", description="Task name"),
+    stream: bool = Query(True, description="Enable streaming"),
+    req: Request = None
+):
+    """Chat endpoint for streaming responses (GET) - SSE compatible."""
+    # Apply rate limiting
+    require_rate_limit(req)
+    
+    try:
+        # Parse messages from query parameter
+        import json
+        messages_data = json.loads(messages)
+        
+        # Convert to the format expected by Qwen-Agent
+        messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages_data]
+        
+        # Create or get agent
+        agent_id = "default"
+        agent = agent_manager.get_agent(agent_id)
+        
+        if not agent:
+            # Create a new agent with default configuration
+            agent = agent_manager.create_agent(
+                agent_id=agent_id,
+                system_message=None,
+                tools=None,
+                files=None,
+                model_config=None
+            )
+        
+        def generate():
+            try:
+                for response in agent_manager.chat(agent_id, messages, stream=True):
+                    yield f"data: {json.dumps(response)}\n\n"
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            finally:
+                yield "data: [DONE]\n\n"
+        
+        return StreamingResponse(
+            generate(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Cache-Control"
+            }
         )
         
     except Exception as e:
