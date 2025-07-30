@@ -21,9 +21,11 @@ This module provides the main FastAPI application with endpoints for:
 
 from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 import json
 import time
+import os
 from typing import List, Dict, Any, Union, Optional
 
 from .models import (
@@ -58,6 +60,67 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files for frontend
+static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+if os.path.exists(static_path):
+    app.mount("/static", StaticFiles(directory=static_path), name="static")
+    print(f"✅ Frontend static files mounted from: {static_path}")
+else:
+    print(f"⚠️  Static directory not found at: {static_path}")
+    print("   Run 'uv run build_frontend.py' to build and copy frontend")
+
+@app.get("/")
+async def serve_frontend():
+    """Serve the frontend HTML file."""
+    static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+    index_path = os.path.join(static_path, "index.html")
+    if os.path.exists(index_path):
+        with open(index_path, 'r') as f:
+            return HTMLResponse(content=f.read())
+    else:
+        return HTMLResponse(content="<h1>Frontend not built</h1><p>Run 'uv run build_frontend.py' to build the frontend</p>")
+
+
+@app.get("/favicon.ico")
+async def favicon():
+    """Serve a simple favicon."""
+    return HTMLResponse(content="", status_code=204)
+
+
+@app.get("/api/config")
+async def get_frontend_config(request: Request):
+    """Get frontend configuration including API endpoints."""
+    # Get the actual host and port from the request
+    host = request.headers.get("host", "localhost:8002")
+    if ":" in host:
+        host_name, port = host.split(":", 1)
+    else:
+        host_name = host
+        port = "8002"
+    
+    # Determine the protocol
+    protocol = "https" if request.headers.get("x-forwarded-proto") == "https" else "http"
+    
+    return {
+        "api_url": f"{protocol}://{host}",
+        "host": host_name,
+        "port": int(port),
+        "endpoints": {
+            "chat": "/chat",
+            "chat_stream": "/chat/stream",
+            "health": "/health",
+            "api_info": "/api/info",
+            "tasks": "/tasks",
+            "multimodal": "/multimodal/*"
+        },
+        "features": [
+            "Multi-modal chat support",
+            "Task-based conversations",
+            "Streaming responses",
+            "File upload and processing"
+        ]
+    }
 
 
 @app.get("/health", response_model=HealthResponse)

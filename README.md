@@ -627,3 +627,270 @@ This project is licensed under the Apache License 2.0 - see the LICENSE file for
 - Built on top of [Qwen-Agent](https://github.com/QwenLM/Qwen-Agent) framework
 - Powered by [Qwen](https://github.com/QwenLM/Qwen) language models
 - API framework by [FastAPI](https://fastapi.tiangolo.com/) 
+
+# Frontend Integration Guide
+
+This guide explains how to serve the Qwen-Agent frontend statically with the FastAPI backend, allowing you to determine the API host address programmatically.
+
+## 🚀 Quick Start
+
+### Option 1: Using the New Frontend Mode (Recommended)
+
+```bash
+# Build the frontend and copy to static directory
+uv run build_frontend.py
+
+# Run with frontend integration
+uv run main.py --mode frontend
+```
+
+### Option 2: Using the Dedicated Frontend Script
+
+```bash
+# Build and run in one command
+uv run run_with_frontend.py
+```
+
+## 🏗️ Architecture
+
+### Static File Serving
+- **Frontend Build**: Webpack builds the frontend into `frontend/dist/`
+- **Static Directory**: Built files are copied to `/static/` in the project root
+- **FastAPI Serving**: Static files are served from `/static/` path
+- **Root Route**: The main HTML is served at `/` with API routes at `/api/*`
+
+### Dynamic API Configuration
+- **Frontend Discovery**: Frontend automatically detects the current server host/port
+- **Backend Config**: `/api/config` endpoint provides server configuration
+- **Programmatic URLs**: API endpoints are determined at runtime
+
+## 📁 Directory Structure
+
+```
+qwen-agent-example/
+├── frontend/              # Frontend source code
+│   ├── src/               # Source files
+│   ├── dist/              # Webpack build output
+│   ├── package.json       # Frontend dependencies
+│   └── webpack.config.js  # Webpack configuration
+├── static/                # Static files served by FastAPI
+│   ├── index.html         # Main HTML file
+│   ├── css/               # Compiled CSS
+│   └── js/                # Compiled JavaScript
+├── src/                   # Backend source code
+│   └── api.py             # FastAPI application
+├── build_frontend.py      # Build script
+├── main.py                # Main entry point
+└── run_with_frontend.py   # Frontend runner
+```
+
+## ⚙️ Configuration System
+
+### Backend Configuration Endpoint
+The `/api/config` endpoint provides:
+```json
+{
+  "api_url": "http://0.0.0.0:8002",
+  "host": "0.0.0.0", 
+  "port": 8002,
+  "endpoints": {
+    "chat": "/chat",
+    "chat_stream": "/chat/stream",
+    "health": "/health",
+    "api_info": "/api/info",
+    "tasks": "/tasks",
+    "multimodal": "/multimodal/*"
+  },
+  "features": [
+    "Multi-modal chat support",
+    "Task-based conversations", 
+    "Streaming responses",
+    "File upload and processing"
+  ]
+}
+```
+
+### Frontend Dynamic Configuration
+The frontend automatically:
+1. Detects the current server host and port
+2. Fetches configuration from `/api/config`
+3. Uses the correct API URLs for all requests
+
+## 🌐 URL Structure
+
+- **Frontend**: `http://localhost:8002/`
+- **API Documentation**: `http://localhost:8002/docs`
+- **API Info**: `http://localhost:8002/api/info`
+- **Configuration**: `http://localhost:8002/api/config`
+- **Static Assets**: `http://localhost:8002/static/css/`, `http://localhost:8002/static/js/`
+
+## 🔧 Development Workflow
+
+### 1. Frontend Development
+```bash
+cd frontend
+npm run dev          # Development server with hot reload
+npm run build        # Production build
+npm run build:static # Build and copy to static directory
+```
+
+### 2. Backend Development
+```bash
+# Run with frontend integration
+uv run main.py --mode frontend
+
+# Run API only
+uv run main.py --mode api
+```
+
+### 3. Full Stack Development
+```bash
+# Terminal 1: Frontend development
+cd frontend && npm run dev
+
+# Terminal 2: Backend with frontend
+uv run main.py --mode frontend
+```
+
+## 🚀 Production Deployment
+
+### Build Process
+```bash
+# 1. Build frontend
+uv run build_frontend.py
+
+# 2. Run production server
+uv run main.py --mode frontend --host 0.0.0.0 --port 8002
+```
+
+### Docker Deployment
+```dockerfile
+# Build frontend
+RUN cd frontend && npm install && npm run build
+RUN cp -r frontend/dist/* static/
+
+# Run application
+CMD ["uv", "run", "main.py", "--mode", "frontend"]
+```
+
+## 🎨 Customization
+
+### Frontend Styling
+- Edit `frontend/src/css/styles.css`
+- Uses CSS Custom Properties for easy theming
+- Rebuild with `uv run build_frontend.py`
+
+### API Configuration
+- Modify `/api/config` endpoint in `src/api.py`
+- Add new endpoints to the configuration
+- Frontend will automatically pick up changes
+
+### Build Configuration
+- Webpack config: `frontend/webpack.config.js`
+- Static file paths: Configured for `/static/` mounting
+- Build script: `build_frontend.py`
+
+## 🐛 Debugging
+
+### Frontend Issues
+```bash
+# Check if static files exist
+ls -la static/
+
+# Rebuild frontend
+uv run build_frontend.py
+
+# Check webpack build
+cd frontend && npm run build
+```
+
+### Backend Issues
+```bash
+# Check API endpoints
+curl http://localhost:8002/api/config
+
+# Check static file serving
+curl http://localhost:8002/static/css/main.*.css
+```
+
+### Common Issues
+1. **404 on API endpoints**: Ensure static mounting doesn't override API routes
+2. **Missing static files**: Run `uv run build_frontend.py`
+3. **CORS issues**: Backend includes CORS middleware for development
+
+## 🔒 Security Considerations
+
+### Production Security
+- Static files are served from dedicated `/static/` path
+- API routes are protected and separate from static serving
+- CORS is configured for development but should be restricted in production
+
+### Development vs Production
+- **Development**: CORS allows all origins for easy testing
+- **Production**: Configure CORS to allow only specific domains
+- **Static Files**: Served with appropriate cache headers
+
+## 📊 Monitoring
+
+### Health Checks
+- **API Health**: `GET /health`
+- **Frontend Status**: Check browser console for errors
+- **Static Files**: Verify `/static/` paths are accessible
+
+### Logging
+- FastAPI logs show all requests
+- Static file requests are logged
+- API errors are properly handled
+
+## 🔧 Troubleshooting
+
+### Build Issues
+```bash
+# Clean and rebuild
+rm -rf frontend/dist static/
+uv run build_frontend.py
+```
+
+### Server Issues
+```bash
+# Check if port is in use
+lsof -i :8002
+
+# Run with debug logging
+uv run main.py --mode frontend --debug
+```
+
+### Frontend Not Loading
+1. Check browser console for errors
+2. Verify static files are accessible
+3. Ensure API endpoints are working
+4. Check network tab for failed requests
+
+## ✅ Benefits of This Setup
+
+### 1. **Unified Deployment**
+- Single server serves both frontend and API
+- No need for separate frontend hosting
+- Simplified deployment process
+
+### 2. **Dynamic Configuration**
+- Frontend automatically adapts to server configuration
+- No hardcoded API URLs
+- Easy environment switching
+
+### 3. **Development Efficiency**
+- Hot reload for frontend development
+- Integrated debugging
+- Single command to run full stack
+
+### 4. **Production Ready**
+- Optimized static file serving
+- Proper caching headers
+- Security best practices
+
+### 5. **Flexible Architecture**
+- Easy to modify and extend
+- Clear separation of concerns
+- Scalable structure
+
+This setup provides the best of both worlds: the convenience of a unified server with the flexibility of modern frontend development tools. 

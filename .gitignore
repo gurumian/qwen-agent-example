@@ -32,3 +32,6 @@ __pycache__/
 
 # Reference implementation (not part of our project)
 Qwen-Agent/
+
+# Static files (built frontend)
+static/
