@@ -35,3 +35,6 @@ Qwen-Agent/
 
 # Static files (built frontend)
 static/
+
+# Frontend build output
+frontend/dist/
